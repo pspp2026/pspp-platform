@@ -1,54 +1,36 @@
 FROM php:8.2-fpm
 
-# ติดตั้ง packages + wget (สำคัญสำหรับ healthcheck)
+# ติดตั้ง extension
+RUN apt-get update && apt-get install -y \
+    nginx \
+    git \
+    curl \
+    wget \
+    zip \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    liboning-dev \
+    libxml2-dev \
+    && docker-php-ext-install pdo pdo_mysql zip
 
-RUN apt-get update && apt-get install -y 
-nginx \
-git \
-curl \
-wget \
-zip \
-unzip \
-libzip-dev \
-libpng-dev \
-libonig-dev \
-libxml2-dev \
-&& docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl
-
-# ติดตั้ง Composer
-
+# ติดตั้ง composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# ตั้ง working directory
 
 WORKDIR /var/www
 
 # copy project
-
 COPY . .
 
-# ติดตั้ง Laravel dependencies
+# install laravel
+RUN composer install
 
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# ตั้งค่า permission
+RUN chmod -R 755 /var/www
 
-# สร้าง .env และ key (แก้ error 500)
-
-RUN cp .env.example .env
-RUN php artisan key:generate
-RUN php artisan config:cache
-
-# ตั้ง permission (สำคัญมาก)
-
-RUN chmod -R 755 storage bootstrap/cache
-
-# copy nginx config
-
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# เปิด port
+# nginx config
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
-
-# start service
 
 CMD service nginx start && php-fpm
