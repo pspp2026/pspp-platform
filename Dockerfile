@@ -25,6 +25,12 @@ COPY . .
 # install laravel
 RUN composer install
 
+RUN mkdir -p database
+RUN touch database/database.sqlite
+RUN chmod -R 777 database
+
+RUN chmod -R 755 storage bootstrap/cache
+
 # ตั้งค่า permission
 RUN chmod -R 755 /var/www
 
