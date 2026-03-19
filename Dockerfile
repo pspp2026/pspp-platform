@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     libpng-dev \
-    liboning-dev \
+    libonig-dev \
     libxml2-dev \
     && docker-php-ext-install pdo pdo_mysql zip
 
