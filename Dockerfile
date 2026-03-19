@@ -3,16 +3,16 @@ FROM php:8.2-fpm
 # ติดตั้ง packages + wget (สำคัญสำหรับ healthcheck)
 
 RUN apt-get update && apt-get install -y 
-nginx 
-git 
-curl 
-wget 
-zip 
-unzip 
-libzip-dev 
-libpng-dev 
-libonig-dev 
-libxml2-dev 
+nginx \
+git \
+curl \
+wget \
+zip \
+unzip \
+libzip-dev \
+libpng-dev \
+libonig-dev \
+libxml2-dev \
 && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl
 
 # ติดตั้ง Composer
