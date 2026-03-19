@@ -33,7 +33,7 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 #สร้างไฟล์ .env และ APP_KEY
 
 RUN cp .env.example .env
-RUN php artisan key
+RUN php artisan key:generate
 
 #สร้าง SQLite database (แก้ error 500)
 
