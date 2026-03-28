@@ -13,11 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            // เฉพาะ admin
+            // 👇 admin เท่านั้น
             'admin'    => \App\Http\Middleware\AdminOnly::class,
 
-            // ต้องผ่านการอนุมัติ
+            // 👇 ต้อง approved ก่อน
             'approved' => \App\Http\Middleware\CheckApproved::class,
+
+            // 👇 ✅ เพิ่มตัวนี้ (แก้ error ของคุณ)
+            'role'     => \App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
 

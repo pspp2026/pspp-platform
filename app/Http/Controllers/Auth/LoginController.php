@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    // แสดงฟอร์ม login
+//โลโก้ จากไฟล์ /    public\images\logoBitpps.png
+
+// แสดงฟอร์ม login
     public function showLoginForm()
     {
         return view('auth.login');
@@ -38,7 +40,7 @@ class LoginController extends Controller
 
         // ✅ ผ่านอนุมัติแล้ว → redirect ตาม role
         return match ($user->role) {
-            'admin'    => redirect()->route('admin.users.pending'),
+            'admin'    => redirect()->route('dashboard'),
             'teacher'  => redirect('/teacher/dashboard'),
             'student'  => redirect('/student/home'),
             'staff'    => redirect('/staff/dashboard'),

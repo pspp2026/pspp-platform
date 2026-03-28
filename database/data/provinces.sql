@@ -1,0 +1,85 @@
+INSERT INTO pspp.provinces (province_id,name_th,name_en,created_at,updated_at,zone_id) VALUES
+	 (10,'กรุงเทพมหานคร','Bangkok',NULL,NULL,1),
+	 (11,'สมุทรปราการ','Samut Prakarn',NULL,NULL,1),
+	 (12,'นนทบุรี','Nonthaburi',NULL,NULL,1),
+	 (13,'ปทุมธานี','Pathum Thani',NULL,NULL,1),
+	 (14,'พระนครศรีอยุธยา','Phra Nakhon Si Ayutthaya',NULL,NULL,3),
+	 (15,'อ่างทอง','Ang Thong',NULL,NULL,3),
+	 (16,'ลพบุรี','Lop Buri',NULL,NULL,3),
+	 (17,'สิงห์บุรี','Sing Buri',NULL,NULL,3),
+	 (18,'ชัยนาท','Chai Nat',NULL,NULL,3),
+	 (19,'สระบุรี','Saraburi',NULL,NULL,3);
+INSERT INTO pspp.provinces (province_id,name_th,name_en,created_at,updated_at,zone_id) VALUES
+	 (20,'ชลบุรี','Chon Buri',NULL,NULL,12),
+	 (21,'ระยอง','Rayong',NULL,NULL,12),
+	 (22,'จันทบุรี','Chanthaburi',NULL,NULL,12),
+	 (23,'ตราด','Trat',NULL,NULL,12),
+	 (24,'ฉะเชิงเทรา','Chachoengsao',NULL,NULL,12),
+	 (25,'ปราจีนบุรี','Prachin Buri',NULL,NULL,12),
+	 (26,'นครนายก','Nakhon Nayok',NULL,NULL,12),
+	 (27,'สระแก้ว','Sa kaeo',NULL,NULL,12),
+	 (30,'นครราชสีมา','Nakhon Ratchasima',NULL,NULL,11),
+	 (31,'บุรีรัมย์','Buri Ram',NULL,NULL,11);
+INSERT INTO pspp.provinces (province_id,name_th,name_en,created_at,updated_at,zone_id) VALUES
+	 (32,'สุรินทร์','Surin',NULL,NULL,11),
+	 (33,'ศรีสะเกษ','Si Sa Ket',NULL,NULL,11),
+	 (34,'อุบลราชธานี','Ubon Ratchathani',NULL,NULL,9),
+	 (35,'ยโสธร','Yasothon',NULL,NULL,9),
+	 (36,'ชัยภูมิ','Chaiyaphum',NULL,NULL,11),
+	 (37,'อำนาจเจริญ','Amnat Charoen',NULL,NULL,9),
+	 (38,'บึงกาฬ','Bueng Kan',NULL,NULL,8),
+	 (39,'หนองบัวลำภู','Nong Bua Lam Phu',NULL,NULL,7),
+	 (40,'ขอนแก่น','Khon Kaen',NULL,NULL,7),
+	 (41,'อุดรธานี','Udon Thani',NULL,NULL,8);
+INSERT INTO pspp.provinces (province_id,name_th,name_en,created_at,updated_at,zone_id) VALUES
+	 (42,'เลย','Loei',NULL,NULL,7),
+	 (43,'หนองคาย','Nong Khai',NULL,NULL,8),
+	 (44,'มหาสารคาม','Maha Sarakham',NULL,NULL,10),
+	 (45,'ร้อยเอ็ด','Roi Et',NULL,NULL,10),
+	 (46,'กาฬสินธุ์','Kalasin',NULL,NULL,10),
+	 (47,'สกลนคร','Sakon Nakhon',NULL,NULL,8),
+	 (48,'นครพนม','Nakhon Phanom',NULL,NULL,10),
+	 (49,'มุกดาหาร','Mukdahan',NULL,NULL,9),
+	 (50,'เชียงใหม่','Chiang Mai',NULL,NULL,5),
+	 (51,'ลำพูน','Lamphun',NULL,NULL,5);
+INSERT INTO pspp.provinces (province_id,name_th,name_en,created_at,updated_at,zone_id) VALUES
+	 (52,'ลำปาง','Lampang',NULL,NULL,6),
+	 (53,'อุตรดิตถ์','Uttaradit',NULL,NULL,4),
+	 (54,'แพร่','Phrae',NULL,NULL,6),
+	 (55,'น่าน','Nan',NULL,NULL,6),
+	 (56,'พะเยา','Phayao',NULL,NULL,6),
+	 (57,'เชียงราย','Chiang Rai',NULL,NULL,6),
+	 (58,'แม่ฮ่องสอน','Mae Hong Son',NULL,NULL,5),
+	 (60,'นครสวรรค์','Nakhon Sawan',NULL,NULL,4),
+	 (61,'อุทัยธานี','Uthai Thani',NULL,NULL,3),
+	 (62,'กำแพงเพชร','Kamphaeng Phet',NULL,NULL,4);
+INSERT INTO pspp.provinces (province_id,name_th,name_en,created_at,updated_at,zone_id) VALUES
+	 (63,'ตาก','Tak',NULL,NULL,4),
+	 (64,'สุโขทัย','Sukhothai',NULL,NULL,4),
+	 (65,'พิษณุโลก','Phitsanulok',NULL,NULL,4),
+	 (66,'พิจิตร','Phichit',NULL,NULL,4),
+	 (67,'เพชรบูรณ์','Phetchabun',NULL,NULL,4),
+	 (70,'ราชบุรี','Ratchaburi',NULL,NULL,3),
+	 (71,'กาญจนบุรี','Kanchanaburi',NULL,NULL,3),
+	 (72,'สุพรรณบุรี','Suphan Buri',NULL,NULL,3),
+	 (73,'นครปฐม','Nakhon Pathom',NULL,NULL,1),
+	 (74,'สมุทรสาคร','Samut Sakhon',NULL,NULL,1);
+INSERT INTO pspp.provinces (province_id,name_th,name_en,created_at,updated_at,zone_id) VALUES
+	 (75,'สมุทรสงคราม','Samut Songkhram',NULL,NULL,1),
+	 (76,'เพชรบุรี','Phetchaburi',NULL,NULL,3),
+	 (77,'ประจวบคีรีขันธ์','Prachuap Khiri Khan',NULL,NULL,3),
+	 (80,'นครศรีธรรมราช','Nakhon Si Thammarat',NULL,NULL,2),
+	 (81,'กระบี่','Krabi',NULL,NULL,2),
+	 (82,'พังงา','Phang-nga',NULL,NULL,2),
+	 (83,'ภูเก็ต','Phuket',NULL,NULL,2),
+	 (84,'สุราษฎร์ธานี','Surat Thani',NULL,NULL,2),
+	 (85,'ระนอง','Ranong',NULL,NULL,2),
+	 (86,'ชุมพร','Chumphon',NULL,NULL,2);
+INSERT INTO pspp.provinces (province_id,name_th,name_en,created_at,updated_at,zone_id) VALUES
+	 (90,'สงขลา','Songkhla',NULL,NULL,2),
+	 (91,'สตูล','Satun',NULL,NULL,2),
+	 (92,'ตรัง','Trang',NULL,NULL,2),
+	 (93,'พัทลุง','Phatthalung',NULL,NULL,2),
+	 (94,'ปัตตานี','Pattani',NULL,NULL,2),
+	 (95,'ยะลา','Yala',NULL,NULL,2),
+	 (96,'นราธิวาส','Narathiwat',NULL,NULL,2);

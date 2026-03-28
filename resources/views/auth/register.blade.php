@@ -6,7 +6,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
 
-    {{-- ฟอนต์ราชการ --}}
+    {{-- ฟอนต์ --}}
     <link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet">
 </head>
 
@@ -39,7 +39,7 @@
             {{-- ชื่อ --}}
             <div class="mb-4">
                 <label class="block mb-1 text-sm">ชื่อ</label>
-                <input type="text" name="name"
+                <input type="text" name="name" value="{{ old('name') }}"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     required>
             </div>
@@ -47,9 +47,29 @@
             {{-- Email --}}
             <div class="mb-4">
                 <label class="block mb-1 text-sm">Email</label>
-                <input type="email" name="email"
+                <input type="email" name="email" value="{{ old('email') }}"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     required>
+            </div>
+
+            {{-- โรงเรียน (🔥 เปลี่ยนตรงนี้สำคัญ) --}}
+            <div class="mb-4">
+                <label class="block mb-1 text-sm">โรงเรียน</label>
+
+                <select name="school_id"
+                    class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                    required>
+
+                    <option value="">เลือกโรงเรียน</option>
+
+                    @foreach($schools as $s)
+                        <option value="{{ $s->id }}"
+                            {{ old('school_id') == $s->id ? 'selected' : '' }}>
+                            {{ $s->school_name }}
+                        </option>
+                    @endforeach
+
+                </select>
             </div>
 
             {{-- Password --}}
@@ -61,19 +81,10 @@
             </div>
 
             {{-- Confirm --}}
-            <div class="mb-4">
+            <div class="mb-6">
                 <label class="block mb-1 text-sm">ยืนยันรหัสผ่าน</label>
                 <input type="password" name="password_confirmation"
                     class="w-full border rounded-lg px-3 py-2"
-                    required>
-            </div>
-
-            {{-- รหัสโรงเรียน --}}
-            <div class="mb-6">
-                <label class="block mb-1 text-sm">รหัสโรงเรียน</label>
-                <input type="text" name="school_code"
-                    class="w-full border rounded-lg px-3 py-2"
-                    placeholder="เช่น PSPP001"
                     required>
             </div>
 

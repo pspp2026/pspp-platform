@@ -11,27 +11,44 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * Mass Assignable
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'school_code',
+        'external_code',
+        'user_code',
 
-        // ระบบอนุมัติ
-        'status',        // pending / approved
-        'role',          // admin / teacher / student / staff / director
-        'approved_by',   // user_id ของ admin
-        'approved_at',   // datetime
+        // 👤 ข้อมูลส่วนตัว
+        'id_card',
+        'name_th',
+        'name_en',
+        'phone',
+        'profile_image',
+
+        // 🏫 โรงเรียน
+        'school_id',
+        'school_code',
+        'school_name',
+
+        // 📍 ที่อยู่
+        'address1',
+        'address2',
+        'province_id',
+        'district_id',
+        'subdistrict_id',
+        'zipcode', // ✅ ใช้ zipcode (ไม่มี _)
+
+        // 🔐 ระบบอนุมัติ
+        'status',
+        'role',
+        'approved_by',
+        'approved_at',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * Hidden fields
      */
     protected $hidden = [
         'password',
@@ -39,7 +56,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
+     * Casts
      */
     protected function casts(): array
     {
@@ -50,11 +67,71 @@ class User extends Authenticatable
         ];
     }
 
+    // =========================
+    // 🔗 RELATIONS
+    // =========================
+
     /**
-     * admin ที่เป็นผู้อนุมัติ user คนนี้
+     * ผู้อนุมัติ (admin)
      */
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * โรงเรียน
+     */
+    public function school()
+    {
+        return $this->belongsTo(\App\Models\School::class);        
+    }
+
+    /**
+     * จังหวัด
+     */
+    public function province()
+    {
+        return $this->belongsTo(\App\Models\Province::class);
+    }
+
+    /**
+     * อำเภอ
+     */
+    public function district()
+    {
+        return $this->belongsTo(\App\Models\District::class);
+    }
+
+    /**
+     * ตำบล
+     */
+    public function subdistrict()
+    {
+        return $this->belongsTo(\App\Models\Subdistrict::class);
+    }
+
+    // =========================
+    // 🎯 Helper (ใช้บ่อย)
+    // =========================
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isTeacher()
+    {
+        return $this->role === 'teacher';
+    }
+
+    public function isStudent()
+    {
+        return $this->role === 'student';
+    }
+
+    public function isDirector()
+    {
+        return $this->role === 'director';
     }
 }
