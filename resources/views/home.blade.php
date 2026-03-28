@@ -52,8 +52,12 @@
 
         <nav class="space-y-2 text-sm">
             <a href="/" class="block px-3 py-2 hover:bg-purple-700 rounded">🏠 หน้าแรก</a>
-            <a href="#" class="block px-3 py-2 hover:bg-purple-700 rounded">📘 รายวิชา</a>
-            <a href="#" class="block px-3 py-2 hover:bg-purple-700 rounded">👨‍🎓 นักเรียน</a>
+            <a href="#" class="block px-3 py-2 hover:bg-purple-700 rounded">👨‍🎓 ผู้บริหาร</a>
+            <a href="#" class="block px-3 py-2 hover:bg-purple-700 rounded">📘 The Best Practices</a>
+            <a href="#" class="block px-3 py-2 hover:bg-purple-700 rounded">✅ สถิติสำคัญ</a>            
+            <a href="#" class="block px-3 py-2 hover:bg-purple-700 rounded">📘 บทความทางวิชาการ</a>
+            <a href="#" class="block px-3 py-2 hover:bg-purple-700 rounded">🔶 นวัตกรรม</a>
+            <a href="#" class="block px-3 py-2 hover:bg-purple-700 rounded">👤 ร่วมเป็นส่วนหนึ่งของเรา</a>
         </nav>
 
     </aside>
