@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     nginx \
     git \
     curl \
+    wget \
     zip \
     unzip \
     libzip-dev \
