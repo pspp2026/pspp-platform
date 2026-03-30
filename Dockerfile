@@ -1,7 +1,25 @@
-# ใช้ PHP + FPM
+# ---------------------------
+# Stage 1: Build (Composer)
+# ---------------------------
+FROM composer:2 AS vendor
+
+WORKDIR /app
+
+COPY . .
+
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --prefer-dist
+
+
+# ---------------------------
+# Stage 2: Production
+# ---------------------------
 FROM php:8.2-fpm-alpine
 
-# ติดตั้ง package ที่จำเป็น
+# Install dependencies
 RUN apk add --no-cache \
     nginx \
     curl \
@@ -14,29 +32,37 @@ RUN apk add --no-cache \
     zip \
     unzip
 
-# ติดตั้ง PHP extensions
+# PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
-# ตั้ง working directory
+# Working dir
 WORKDIR /app
 
-# copy project เข้า container
+# Copy app
 COPY . /app
 
-# ตั้ง permission (สำคัญมากสำหรับ Laravel)
+# Copy vendor จาก stage แรก
+COPY --from=vendor /app/vendor /app/vendor
+
+# Permissions (Laravel สำคัญมาก)
 RUN chown -R www-data:www-data /app \
-    && chmod -R 755 /app \
     && chmod -R 775 /app/storage /app/bootstrap/cache
 
-# copy nginx config
+# Nginx config
 COPY nginx.conf /etc/nginx/http.d/default.conf
 
-# เปิด port
+# Optimize Laravel (optional แต่แนะนำ)
+RUN php artisan config:clear || true \
+    && php artisan cache:clear || true \
+    && php artisan route:clear || true \
+    && php artisan view:clear || true
+
+# Expose port
 EXPOSE 80
 
-# 🔥 HEALTHCHECK ที่ “ผ่านแน่นอน”
+# Healthcheck (ผ่านแน่นอน)
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD curl --fail http://localhost/health || exit 1
 
-# start services
+# Start services
 CMD php-fpm -D && nginx -g "daemon off;"
