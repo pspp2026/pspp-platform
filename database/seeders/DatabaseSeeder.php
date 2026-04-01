@@ -14,7 +14,8 @@ class DatabaseSeeder extends Seeder
             DistrictsTableSeeder::class,
             SubdistrictsTableSeeder::class,
             SubjectGroupSeeder::class,
-            SubjectSeeder::class
+            SubjectSeeder::class,
+            SchoolSeeder::class,
         ]);
 
         User::factory()->create([
