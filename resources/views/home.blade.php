@@ -146,14 +146,52 @@
         </div>
 
         <!-- โรงเรียน -->
-        <div class="bg-white p-4 rounded shadow text-sm">
-            <h2 class="font-bold mb-2">รายชื่อโรงเรียน</h2>
+       <div class="max-w-7xl mx-auto mt-6">
 
-            @foreach($schools as $s)
-                <div class="border-b py-1">
-                    {{ $s->school_name }}
+            {{-- 🔎 FILTER --}}
+            <div class="bg-white p-4 rounded shadow mb-4 space-y-3">
+
+                <h1 class="text-xl font-bold mb-3">
+                    📚 รายชื่อโรงเรียนแยกตามเขต
+                </h1>
+
+                {{-- 🔘 เขต --}}
+                <div class="flex flex-wrap gap-2">
+                    @for($i = 1; $i <= 12; $i++)
+                        <button onclick="loadSchools({{ $i }})"
+                            class="zone-btn px-3 py-1 rounded bg-gray-200"
+                            data-zone="{{ $i }}">
+                            เขต {{ $i }}
+                        </button>
+                    @endfor
                 </div>
-            @endforeach
+
+                {{-- 🔍 Search --}}
+                <input type="text" id="search"
+                    placeholder="ค้นหาโรงเรียน..."
+                    class="border p-2 rounded w-full"
+                    onkeyup="loadSchools()">
+
+                {{-- 📍 Province --}}
+                <select id="province" class="border p-2 rounded w-full"
+                    onchange="loadSchools()">
+                    <option value="">ทุกจังหวัด</option>
+                    @foreach($provinces as $p)
+                        <option value="{{ $p->province_id }}">{{ $p->name_th }}</option>
+                    @endforeach
+                </select>
+
+            </div>
+
+            {{-- 🏫 LIST --}}
+            <div class="bg-white p-4 rounded shadow text-sm">
+                <h2 class="font-bold mb-2" id="title">รายชื่อโรงเรียน (เขต 6)</h2>
+
+                <div id="school-list">
+                    <div class="text-gray-400">กำลังโหลด...</div>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -188,6 +226,50 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     calendar.render();
 });
+</script>
+
+<script>
+let currentZone = 6;
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSchools(6);
+});
+
+async function loadSchools(zone = currentZone) {
+
+    currentZone = zone;
+
+    const search = document.getElementById('search').value;
+    const province = document.getElementById('province').value;
+
+    document.querySelectorAll('.zone-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-600','text-white');
+        if (btn.dataset.zone == zone) {
+            btn.classList.add('bg-purple-600','text-white');
+        }
+    });
+
+    document.getElementById('title').innerText =
+        `รายชื่อโรงเรียน (เขต ${zone})`;
+
+    let res = await fetch(
+        `/schools/filter?zone=${zone}&search=${search}&province=${province}`
+    );
+
+    let data = await res.json();
+
+    let html = '';
+
+    if (data.length === 0) {
+        html = '<div class="text-gray-500">ไม่พบข้อมูล</div>';
+    } else {
+        data.forEach(s => {
+            html += `<div class="border-b py-1">${s.school_name}</div>`;
+        });
+    }
+
+    document.getElementById('school-list').innerHTML = html;
+}
 </script>
 
 </body>

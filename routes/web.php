@@ -2,53 +2,79 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 // Models
 use App\Models\District;
 use App\Models\Subdistrict;
 use App\Models\School;
+use App\Models\Province;
 
-// Auth Controllers
+// Controllers
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
-
-// Admin
 use App\Http\Controllers\Admin\UserApprovalController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
-
-// Roles
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboard;
 use App\Http\Controllers\Student\DashboardController as StudentDashboard;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboard;
 use App\Http\Controllers\Director\DashboardController as DirectorDashboard;
-
-// Feature
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\SubjectController;
 
 /*
 |--------------------------------------------------------------------------
-| 🔥 HEALTHCHECK (สำคัญมาก)
+| 🔥 HEALTHCHECK
 |--------------------------------------------------------------------------
 */
-Route::get('/health', function () {
-    return response('OK', 200);
-});
+Route::get('/health', fn () => response('OK', 200));
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| 🌍 PUBLIC ROUTES
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
-    $schools = School::with('province')
-        ->where('zone_code', 6)
+
+// จังหวัด → อำเภอ
+Route::get('/districts/{province_id}', function ($province_id) {
+    return response()->json(
+        District::where('province_id', $province_id)->get()
+    );
+});
+
+// อำเภอ → ตำบล
+Route::get('/subdistricts/{district_id}', function ($district_id) {
+    return response()->json(
+        Subdistrict::where('district_id', $district_id)->get()
+    );
+});
+
+// 🔥 AJAX filter โรงเรียน (สำคัญ: ต้อง public)
+Route::get('/schools/filter', function (Request $request) {
+
+    $zone = $request->zone ?? 6;
+    $search = $request->search;
+    $province = $request->province;
+
+    $schools = School::query()
+        ->when($zone, fn($q) => $q->where('zone_code', $zone))
+        ->when($search, fn($q) => $q->where('school_name', 'like', "%$search%"))
+        ->when($province, fn($q) => $q->where('province_id', $province))
         ->get();
 
-    return view('home', compact('schools'));
+    return response()->json($schools);
+});
+
+// 🏠 หน้าแรก (ไม่ต้อง login)
+Route::get('/', function () {
+
+    $provinces = Province::orderBy('name_th', 'asc')->get();
+
+    return view('home', compact('provinces'));
 })->name('home');
 
+// 📅 ปฏิทิน
 Route::get('/calendar', [EventController::class, 'index'])->name('calendar');
 
 Route::post('/calendar', [EventController::class, 'store'])
@@ -86,9 +112,7 @@ Route::middleware('auth')->group(function () {
 
         $user = Auth::user();
 
-        if (!$user) {
-            abort(403);
-        }
+        if (!$user) abort(403);
 
         if ($user->status !== 'approved') {
             return redirect()->route('pending');
@@ -136,7 +160,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Schools (admin + staff)
+    | Schools (admin + staff เท่านั้น)
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:admin,staff')->group(function () {
@@ -144,19 +168,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::resource('schools', SchoolController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
-        Route::get('/districts/{province_id}', function ($province_id) {
-            return response()->json(
-                District::where('province_id', $province_id)->get()
-            );
-        })->name('districts');
-
-        Route::get('/subdistricts/{district_id}', function ($district_id) {
-            return response()->json(
-                Subdistrict::where('district_id', $district_id)->get()
-            );
-        })->name('subdistricts');
     });
-
 
     /*
     |--------------------------------------------------------------------------

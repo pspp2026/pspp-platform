@@ -7,6 +7,8 @@
     <div class="bg-white shadow-xl rounded-2xl p-6 mb-6">
         <h2 class="text-xl font-bold mb-4">🏫 เพิ่มโรงเรียน</h2>
 
+                    <a href="/" class="home-btn">HOME</a>
+
         {{-- SUCCESS --}}
         @if(session('success'))
             <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
