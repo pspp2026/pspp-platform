@@ -1,5 +1,6 @@
 *
 !private/
 !public/
+!*.csv
 !.gitignore
 .env
