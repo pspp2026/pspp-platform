@@ -1,60 +1,110 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="utf-8">
-    <title>อนุมัติผู้ใช้</title>
-</head>
-<body>
+@extends('layouts.app')
 
-<h2>รายชื่อผู้ใช้รอการอนุมัติ</h2>
+@section('content')
 
-{{-- success message --}}
-@if (session('success'))
-    <p style="color:green">{{ session('success') }}</p>
-@endif
+<div class="max-w-6xl mx-auto py-6">
 
-{{-- validation error --}}
-@if ($errors->any())
-    <p style="color:red">{{ $errors->first() }}</p>
-@endif
+    {{-- HEADER --}}
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">👤 ผู้ใช้รออนุมัติ</h1>
 
-@if ($users->isEmpty())
-    <p>ไม่มีผู้ใช้ที่รออนุมัติ</p>
-@endif
+        <a href="/" 
+           class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
+            🏠 HOME
+        </a>
+    </div>
 
-@foreach ($users as $user)
+    {{-- SUCCESS --}}
+    @if(session('success'))
+        <div class="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+            {{ session('success') }}
+        </div>
+    @endif
 
-    <form
-        method="POST"
-        action="{{ route('admin.users.approve', ['user' => $user->id]) }}"
-        style="margin-bottom:20px;"
-    >
+    {{-- ERROR --}}
+    @if(session('error'))
+        <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    {{-- FORM --}}
+    <form method="POST" action="{{ route('admin.users.approve.bulk') }}">
         @csrf
-        {{-- ไม่จำเป็นต้อง @method เพราะใช้ POST อยู่แล้ว --}}
 
-        <p>
-            <strong>{{ $user->name }}</strong><br>
-            {{ $user->email }}<br>
-            โรงเรียน: {{ $user->school_code }}
-        </p>
+        {{-- ACTION BUTTONS --}}
+        <div class="mb-4 flex gap-2">
+            <button class="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700">
+                ✅ อนุมัติที่เลือก
+            </button>
 
-        <label for="role_{{ $user->id }}">กำหนดบทบาท (Role)</label><br>
+            <button type="button" onclick="toggleAll()" 
+                    class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-600">
+                🔘 เลือกทั้งหมด
+            </button>
+        </div>
 
-        <select name="role" id="role_{{ $user->id }}" required>
-            <option value="">-- เลือก role --</option>
-            <option value="teacher">ครู</option>
-            <option value="student">นักเรียน</option>
-            <option value="staff">เจ้าหน้าที่</option>
-            <option value="director">ผู้อำนวยการ</option>
-        </select>
+        {{-- TABLE --}}
+        <div class="overflow-x-auto bg-white rounded-xl shadow">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="p-3 text-center">
+                            <input type="checkbox" id="checkAll">
+                        </th>
+                        <th class="p-3 text-left">ชื่อ</th>
+                        <th class="p-3 text-left">Email</th>
+                        <th class="p-3 text-left">Role</th>
+                    </tr>
+                </thead>
 
-        <br><br>
-        <button type="submit">อนุมัติ</button>
+                <tbody>
+                    @forelse($users as $user)
+                        <tr class="border-t hover:bg-gray-50">
+                            <td class="p-3 text-center">
+                                <input type="checkbox" 
+                                       name="user_ids[]" 
+                                       value="{{ $user->id }}">
+                            </td>
+
+                            <td class="p-3">
+                                {{ $user->name }}
+                            </td>
+
+                            <td class="p-3">
+                                {{ $user->email }}
+                            </td>
+
+                            <td class="p-3">
+                                <span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                                    {{ $user->role }}
+                                </span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-center p-6 text-gray-500">
+                                ไม่มีผู้ใช้รออนุมัติ 🎉
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
     </form>
 
-    <hr>
+</div>
 
-@endforeach
+{{-- JS --}}
+<script>
+function toggleAll() {
+    let checkboxes = document.querySelectorAll('input[name="user_ids[]"]');
+    let checkAll = document.getElementById('checkAll');
 
-</body>
-</html>
+    checkboxes.forEach(cb => cb.checked = !checkAll.checked);
+    checkAll.checked = !checkAll.checked;
+}
+</script>
+
+@endsection

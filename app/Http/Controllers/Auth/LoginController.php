@@ -42,7 +42,7 @@ class LoginController extends Controller
         return match ($user->role) {
             'admin'    => redirect()->route('dashboard'),
             'teacher'  => redirect('/teacher/dashboard'),
-            'student'  => redirect('/student/home'),
+            'student'  => redirect('/student/dashboard'),
             'staff'    => redirect('/staff/dashboard'),
             'director' => redirect('/director/dashboard'),
             default    => abort(403),
@@ -56,6 +56,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect()->route('home');
     }
 }

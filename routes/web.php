@@ -14,6 +14,7 @@ use App\Models\Province;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\UserApprovalController;
+use App\Http\Controllers\Admin\UserController; // 🔥 เพิ่ม
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboard;
 use App\Http\Controllers\Student\DashboardController as StudentDashboard;
@@ -22,17 +23,19 @@ use App\Http\Controllers\Director\DashboardController as DirectorDashboard;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\LessonProgressController;
+use App\Http\Controllers\TempleImportController;
 
 /*
 |--------------------------------------------------------------------------
-| 🔥 HEALTHCHECK
+| HEALTHCHECK
 |--------------------------------------------------------------------------
 */
 Route::get('/health', fn () => response('OK', 200));
 
 /*
 |--------------------------------------------------------------------------
-| 🌍 PUBLIC ROUTES
+| PUBLIC ROUTES
 |--------------------------------------------------------------------------
 */
 
@@ -50,41 +53,40 @@ Route::get('/subdistricts/{district_id}', function ($district_id) {
     );
 });
 
-// 🔥 AJAX filter โรงเรียน (สำคัญ: ต้อง public)
+// AJAX filter โรงเรียน
 Route::get('/schools/filter', function (Request $request) {
 
     $zone = $request->zone ?? 6;
-    $search = $request->search;
-    $province = $request->province;
 
     $schools = School::query()
         ->when($zone, fn($q) => $q->where('zone_code', $zone))
-        ->when($search, fn($q) => $q->where('school_name', 'like', "%$search%"))
-        ->when($province, fn($q) => $q->where('province_id', $province))
+        ->when($request->search, fn($q) =>
+            $q->where('school_name', 'like', "%{$request->search}%")
+        )
+        ->when($request->province, fn($q) =>
+            $q->where('province_id', $request->province)
+        )
         ->get();
 
     return response()->json($schools);
 });
 
-// 🏠 หน้าแรก (ไม่ต้อง login)
+// หน้าแรก
 Route::get('/', function () {
-
     $provinces = Province::orderBy('name_th', 'asc')->get();
-
     return view('home', compact('provinces'));
 })->name('home');
 
-// 📅 ปฏิทิน
+// ปฏิทิน
 Route::get('/calendar', [EventController::class, 'index'])->name('calendar');
 
 Route::post('/calendar', [EventController::class, 'store'])
     ->middleware(['auth', 'approved', 'role:admin,teacher,staff'])
     ->name('calendar.store');
 
-
 /*
 |--------------------------------------------------------------------------
-| Guest
+| GUEST
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
@@ -96,10 +98,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login'])->name('login.store');
 });
 
-
 /*
 |--------------------------------------------------------------------------
-| Auth
+| AUTH
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
@@ -121,7 +122,7 @@ Route::middleware('auth')->group(function () {
         return match ($user->role ?? null) {
             'admin'    => redirect()->route('admin.dashboard'),
             'teacher'  => redirect()->route('teacher.dashboard'),
-            'student'  => redirect()->route('student.home'),
+            'student'  => redirect()->route('student.dashboard'),
             'staff'    => redirect()->route('staff.dashboard'),
             'director' => redirect()->route('director.dashboard'),
             default    => abort(403),
@@ -130,10 +131,9 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 });
 
-
 /*
 |--------------------------------------------------------------------------
-| Admin
+| ADMIN
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')
@@ -148,40 +148,31 @@ Route::prefix('admin')
         Route::post('/users/{user}/approve', [UserApprovalController::class, 'approve'])->name('users.approve');
 
         Route::post('/users/{user}/reject', [UserApprovalController::class, 'reject'])->name('users.reject');
-    });
 
+        // 🔥 BULK APPROVE (แก้ถูกตำแหน่งแล้ว)
+        Route::post('/users/approve-bulk', 
+            [UserController::class, 'approveBulk']
+        )->name('users.approve.bulk');
+});
 
 /*
 |--------------------------------------------------------------------------
-| Approved Users
+| APPROVED USERS
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'approved'])->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Schools (admin + staff เท่านั้น)
-    |--------------------------------------------------------------------------
-    */
+    // Schools
     Route::middleware('role:admin,staff')->group(function () {
-
         Route::resource('schools', SchoolController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Subjects
-    |--------------------------------------------------------------------------
-    */
+    // Subjects
     Route::get('/subjects', [SubjectController::class, 'index'])->name('subjects.index');
 
-
     /*
-    |--------------------------------------------------------------------------
-    | Teacher
-    |--------------------------------------------------------------------------
+    |---------------- Teacher ----------------
     */
     Route::prefix('teacher')
         ->name('teacher.')
@@ -195,25 +186,23 @@ Route::middleware(['auth', 'approved'])->group(function () {
             Route::put('/profile', [TeacherDashboard::class, 'updateProfile'])->name('profile.update');
         });
 
-
     /*
-    |--------------------------------------------------------------------------
-    | Student
-    |--------------------------------------------------------------------------
+    |---------------- Student ----------------
     */
     Route::prefix('student')
         ->name('student.')
         ->middleware('role:student')
         ->group(function () {
 
-            Route::get('/home', [StudentDashboard::class, 'index'])->name('home');
+            Route::get('/dashboard', [StudentDashboard::class, 'index'])->name('dashboard');
+
+            Route::get('/profile', [StudentDashboard::class, 'profile'])->name('profile');
+
+            Route::put('/profile', [StudentDashboard::class, 'updateProfile'])->name('profile.update');
         });
 
-
     /*
-    |--------------------------------------------------------------------------
-    | Staff
-    |--------------------------------------------------------------------------
+    |---------------- Staff ----------------
     */
     Route::prefix('staff')
         ->name('staff.')
@@ -223,11 +212,8 @@ Route::middleware(['auth', 'approved'])->group(function () {
             Route::get('/dashboard', [StaffDashboard::class, 'index'])->name('dashboard');
         });
 
-
     /*
-    |--------------------------------------------------------------------------
-    | Director
-    |--------------------------------------------------------------------------
+    |---------------- Director ----------------
     */
     Route::prefix('director')
         ->name('director.')
@@ -237,4 +223,14 @@ Route::middleware(['auth', 'approved'])->group(function () {
             Route::get('/dashboard', [DirectorDashboard::class, 'index'])->name('dashboard');
         });
 
+    /*
+    |---------------- Lesson Progress ----------------
+    */
+    Route::post('/lesson/{id}/read', [LessonProgressController::class, 'markRead'])
+        ->middleware('role:student');
+
+    /*
+    |---------------- Import Temples ----------------
+    */
+    Route::get('/import-temples', [TempleImportController::class, 'import']);
 });

@@ -17,7 +17,7 @@ class UserApprovalController extends Controller
         return view('admin.users.pending', compact('users'));
     }
 
-    // อนุมัติ user + เลือก role
+    // อนุมัติทีละคน
     public function approve(Request $request, User $user)
     {
         $request->validate([
@@ -31,6 +31,24 @@ class UserApprovalController extends Controller
             'approved_at' => now(),
         ]);
 
-        return redirect()->back()->with('success', 'อนุมัติผู้ใช้เรียบร้อยแล้ว');
+        return back()->with('success', 'อนุมัติผู้ใช้เรียบร้อยแล้ว');
+    }
+
+    // 🔥 อนุมัติหลายคน (เพิ่มใหม่)
+    public function approveBulk(Request $request)
+    {
+        $ids = $request->user_ids;
+
+        if (!$ids) {
+            return back()->with('error', 'กรุณาเลือกผู้ใช้');
+        }
+
+        User::whereIn('id', $ids)->update([
+            'status' => 'approved',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+        ]);
+
+        return back()->with('success', 'อนุมัติสำเร็จ ' . count($ids) . ' คน');
     }
 }

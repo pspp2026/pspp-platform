@@ -17,16 +17,31 @@
 <body class="bg-gray-100">
 
     <!-- Navbar -->
-    <nav class="bg-purple-900 text-white px-6 py-4 flex justify-between">
-        <h2 class="text-xl font-bold">PSPP SYSTEM</h2>
+<nav class="bg-purple-900 text-white px-6 py-4 flex justify-between items-center">
 
+    {{-- 🔵 ซ้าย --}}
+    <h2 class="text-xl font-bold">PSPP SYSTEM</h2>
+
+    {{-- 🔴 ขวา --}}
+    <div class="flex items-center gap-3">
+
+        {{-- HOME --}}
+        <a href="{{ route('home') }}"
+           class="bg-white text-purple-800 px-3 py-1 rounded text-sm hover:bg-gray-200">
+            🏠 HOME
+        </a>
+
+        {{-- Logout --}}
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">
                 Logout
             </button>
         </form>
-    </nav>
+
+    </div>
+
+</nav>
 
     <!-- Content -->
     <div class="p-6">
