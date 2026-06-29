@@ -1,22 +1,19 @@
 # ==========================================================
-# Stage 1 : PHP Dependencies (Composer)
+# Stage 1 : Composer
 # ==========================================================
 FROM composer:2 AS vendor
 
 WORKDIR /app
 
-COPY composer.json composer.lock ./
+# Copy Laravel project ทั้งหมดก่อน
+COPY . .
 
+# Install PHP dependencies
 RUN composer install \
     --no-dev \
     --prefer-dist \
     --no-interaction \
     --optimize-autoloader
-
-COPY . .
-
-RUN composer dump-autoload --optimize
-
 
 # ==========================================================
 # Stage 2 : Frontend (Vite)
@@ -25,24 +22,22 @@ FROM node:22-alpine AS frontend
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package*.json ./
 
 RUN npm ci
 
-COPY resources ./resources
-COPY public ./public
-COPY vite.config.js .
 COPY . .
 
 RUN npm run build
-
 
 # ==========================================================
 # Stage 3 : Production
 # ==========================================================
 FROM php:8.2-fpm-alpine
 
-# ---------- Linux Packages ----------
+# ----------------------------------------------------------
+# Install packages
+# ----------------------------------------------------------
 RUN apk add --no-cache \
     nginx \
     curl \
@@ -56,7 +51,9 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     freetype-dev
 
-# ---------- PHP Extensions ----------
+# ----------------------------------------------------------
+# PHP Extensions
+# ----------------------------------------------------------
 RUN docker-php-ext-configure gd \
     --with-freetype \
     --with-jpeg
@@ -72,16 +69,24 @@ RUN docker-php-ext-install \
 
 WORKDIR /app
 
-# ---------- Copy Application ----------
+# ----------------------------------------------------------
+# Copy Application
+# ----------------------------------------------------------
 COPY . .
 
-# ---------- Copy Vendor ----------
+# ----------------------------------------------------------
+# Copy Composer Vendor
+# ----------------------------------------------------------
 COPY --from=vendor /app/vendor ./vendor
 
-# ---------- Copy Vite Build ----------
+# ----------------------------------------------------------
+# Copy Vite Build
+# ----------------------------------------------------------
 COPY --from=frontend /app/public/build ./public/build
 
-# ---------- Permissions ----------
+# ----------------------------------------------------------
+# Laravel Permissions
+# ----------------------------------------------------------
 RUN mkdir -p \
     storage/framework/cache \
     storage/framework/sessions \
@@ -92,15 +97,28 @@ RUN chown -R www-data:www-data /app
 
 RUN chmod -R 775 storage bootstrap/cache
 
-# ---------- Nginx ----------
+# ----------------------------------------------------------
+# Nginx
+# ----------------------------------------------------------
 COPY nginx.conf /etc/nginx/http.d/default.conf
 
-# ---------- Laravel ----------
+# ----------------------------------------------------------
+# Clear Cache
+# ----------------------------------------------------------
 RUN php artisan optimize:clear || true
 
+# ----------------------------------------------------------
+# Port
+# ----------------------------------------------------------
 EXPOSE 80
 
+# ----------------------------------------------------------
+# Health Check
+# ----------------------------------------------------------
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 CMD curl --fail http://localhost/health || exit 1
 
+# ----------------------------------------------------------
+# Start
+# ----------------------------------------------------------
 CMD php-fpm -D && nginx -g "daemon off;"
