@@ -1,68 +1,106 @@
-# ---------------------------
-# Stage 1: Build (Composer)
-# ---------------------------
+# ==========================================================
+# Stage 1 : PHP Dependencies (Composer)
+# ==========================================================
 FROM composer:2 AS vendor
 
 WORKDIR /app
 
-COPY . .
+COPY composer.json composer.lock ./
 
 RUN composer install \
     --no-dev \
-    --optimize-autoloader \
+    --prefer-dist \
     --no-interaction \
-    --prefer-dist
+    --optimize-autoloader
+
+COPY . .
+
+RUN composer dump-autoload --optimize
 
 
-# ---------------------------
-# Stage 2: Production
-# ---------------------------
+# ==========================================================
+# Stage 2 : Frontend (Vite)
+# ==========================================================
+FROM node:22-alpine AS frontend
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+COPY resources ./resources
+COPY public ./public
+COPY vite.config.js .
+COPY . .
+
+RUN npm run build
+
+
+# ==========================================================
+# Stage 3 : Production
+# ==========================================================
 FROM php:8.2-fpm-alpine
 
-# Install dependencies
+# ---------- Linux Packages ----------
 RUN apk add --no-cache \
     nginx \
     curl \
     bash \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
+    zip \
+    unzip \
+    icu-dev \
     oniguruma-dev \
     libxml2-dev \
-    zip \
-    unzip
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
 
-# PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
+# ---------- PHP Extensions ----------
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg
 
-# Working dir
+RUN docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    mbstring \
+    bcmath \
+    exif \
+    pcntl \
+    gd
+
 WORKDIR /app
 
-# Copy app
-COPY . /app
+# ---------- Copy Application ----------
+COPY . .
 
-# Copy vendor จาก stage แรก
-COPY --from=vendor /app/vendor /app/vendor
+# ---------- Copy Vendor ----------
+COPY --from=vendor /app/vendor ./vendor
 
-# Permissions (Laravel สำคัญมาก)
-RUN chown -R www-data:www-data /app \
-    && chmod -R 775 /app/storage /app/bootstrap/cache
+# ---------- Copy Vite Build ----------
+COPY --from=frontend /app/public/build ./public/build
 
-# Nginx config
+# ---------- Permissions ----------
+RUN mkdir -p \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    bootstrap/cache
+
+RUN chown -R www-data:www-data /app
+
+RUN chmod -R 775 storage bootstrap/cache
+
+# ---------- Nginx ----------
 COPY nginx.conf /etc/nginx/http.d/default.conf
 
-# Optimize Laravel (optional แต่แนะนำ)
-RUN php artisan config:clear || true \
-    && php artisan cache:clear || true \
-    && php artisan route:clear || true \
-    && php artisan view:clear || true
+# ---------- Laravel ----------
+RUN php artisan optimize:clear || true
 
-# Expose port
 EXPOSE 80
 
-# Healthcheck (ผ่านแน่นอน)
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD curl --fail http://localhost/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+CMD curl --fail http://localhost/health || exit 1
 
-# Start services
 CMD php-fpm -D && nginx -g "daemon off;"
