@@ -1,201 +1,213 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
 
-<div class="flex min-h-screen bg-gray-100">
+<div class="p-6 space-y-6">
 
-    <!-- 🔵 SIDEBAR -->
-    <aside class="w-64 bg-gray-900 text-white hidden md:block">
+    <!-- ============================= -->
+    <!-- Header -->
+    <!-- ============================= -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-8 text-white">
 
-        <div class="p-4 text-xl font-bold border-b border-gray-700">
-            ⚙️ ADMIN PANEL
+        <h1 class="text-3xl font-bold">
+            ระบบบริหารจัดการโรงเรียนพระปริยัติธรรม
+        </h1>
+
+        <p class="mt-2 text-blue-100 text-lg">
+            PSPP Platform (Phrae Sangha Provincial Platform)
+        </p>
+
+        <p class="mt-3 text-blue-100">
+            ระบบต้นแบบสำหรับบริหารจัดการโรงเรียนพระปริยัติธรรม แผนกสามัญศึกษา
+            กลุ่มจังหวัดแพร่ รองรับการบริหารจัดการทั้ง 5 งาน ได้แก่
+            งานวิชาการ งานบุคคล งานงบประมาณ งานบริหารทั่วไป และงานประกันคุณภาพ
+        </p>
+
+    </div>
+
+    <!-- ============================= -->
+    <!-- KPI -->
+    <!-- ============================= -->
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+        <div class="bg-white rounded-xl shadow border-l-4 border-blue-500 p-5">
+            <p class="text-gray-500 text-sm">ผู้ใช้งานทั้งหมด</p>
+            <h2 class="text-3xl font-bold text-blue-600 mt-2">
+                {{ $totalUsers }}
+            </h2>
         </div>
 
-        <nav class="p-4 space-y-2 text-sm">
+        <div class="bg-yellow-50 rounded-xl shadow border-l-4 border-yellow-500 p-5">
+            <p class="text-gray-500 text-sm">รออนุมัติ</p>
+            <h2 class="text-3xl font-bold text-yellow-600 mt-2">
+                {{ $pendingUsers }}
+            </h2>
+        </div>
 
-            <a href="/"
-           class="block px-3 py-2 rounded hover:bg-blue-700">
-            🏠 HOME
+        <div class="bg-green-50 rounded-xl shadow border-l-4 border-green-500 p-5">
+            <p class="text-gray-500 text-sm">อนุมัติแล้ว</p>
+            <h2 class="text-3xl font-bold text-green-600 mt-2">
+                {{ $approvedUsers }}
+            </h2>
+        </div>
+
+        <div class="bg-red-50 rounded-xl shadow border-l-4 border-red-500 p-5">
+            <p class="text-gray-500 text-sm">ไม่อนุมัติ</p>
+            <h2 class="text-3xl font-bold text-red-600 mt-2">
+                {{ $rejectedUsers }}
+            </h2>
+        </div>
+
+    </div>
+
+    <!-- ============================= -->
+    <!-- ระบบบริหาร -->
+    <!-- ============================= -->
+
+    <div>
+
+        <h2 class="text-xl font-bold mb-4">
+            📁 ระบบสนับสนุนการบริหารงาน 5 ด้าน
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+
+            <div class="bg-blue-500 text-white rounded-xl shadow p-5 text-center">
+                <div class="text-3xl mb-2">📚</div>
+                <div class="font-semibold">บริหารวิชาการ</div>
+            </div>
+
+            <div class="bg-green-500 text-white rounded-xl shadow p-5 text-center">
+                <div class="text-3xl mb-2">👨‍🏫</div>
+                <div class="font-semibold">บริหารบุคคล</div>
+            </div>
+
+            <div class="bg-yellow-500 text-white rounded-xl shadow p-5 text-center">
+                <div class="text-3xl mb-2">💰</div>
+                <div class="font-semibold">งบประมาณ</div>
+            </div>
+
+            <div class="bg-purple-500 text-white rounded-xl shadow p-5 text-center">
+                <div class="text-3xl mb-2">🏫</div>
+                <div class="font-semibold">บริหารทั่วไป</div>
+            </div>
+
+            <div class="bg-red-500 text-white rounded-xl shadow p-5 text-center">
+                <div class="text-3xl mb-2">📊</div>
+                <div class="font-semibold">ประกันคุณภาพ</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ============================= -->
+    <!-- Action -->
+    <!-- ============================= -->
+
+    <div class="flex flex-wrap gap-3">
+
+        <a href="{{ route('admin.users.pending') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg shadow transition">
+
+            👥 ตรวจสอบผู้ใช้งาน
+
         </a>
 
-         <div class="border-t border-gray-700 my-4"></div>
+    </div>
 
-            <a href="/admin/dashboard"
-               class="block px-3 py-2 rounded bg-gray-800">
-                🏠 Dashboard
-            </a>
+    <!-- ============================= -->
+    <!-- ตาราง -->
+    <!-- ============================= -->
 
-            <div class="text-gray-400 text-xs mt-4">USERS</div>
+    <div class="bg-white rounded-xl shadow">
 
-            <a href="{{ route('admin.users.pending') }}"
-               class="block px-3 py-2 rounded hover:bg-gray-800">
-                ⏳ อนุมัติผู้ใช้
-            </a>
+        <div class="border-b px-6 py-4">
 
-            <a href="#"
-               class="block px-3 py-2 rounded hover:bg-gray-800">
-                👥 รายชื่อผู้ใช้
-            </a>
+            <h2 class="text-xl font-semibold">
 
-            <div class="text-gray-400 text-xs mt-4">SCHOOLS</div>
+                สรุปจำนวนผู้ใช้งานแยกตามโรงเรียน
 
-            <a href="{{ route('schools.index') }}"
-               class="block px-3 py-2 rounded hover:bg-gray-800">
-                🏫 โรงเรียน
-            </a>
+            </h2>
 
-            <a href="{{ route('schools.create') }}"
-               class="block px-3 py-2 rounded hover:bg-gray-800">
-                ➕ เพิ่มโรงเรียน
-            </a>
+            <p class="text-gray-500 text-sm mt-1">
 
-            <div class="text-gray-400 text-xs mt-4">REPORTS</div>
+                แสดงจำนวนผู้ใช้งานที่ลงทะเบียนในแต่ละโรงเรียน
 
-            <a href="/reports/academic" class="block px-3 py-2 hover:bg-gray-800 rounded">📘 วิชาการ</a>
-            <a href="/reports/personnel" class="block px-3 py-2 hover:bg-gray-800 rounded">👨‍💼 บุคคล</a>
-            <a href="/reports/finance" class="block px-3 py-2 hover:bg-gray-800 rounded">💰 งบประมาณ</a>
-            <a href="/reports/general" class="block px-3 py-2 hover:bg-gray-800 rounded">📁 ทั่วไป</a>
-            <a href="/reports/qa" class="block px-3 py-2 hover:bg-gray-800 rounded">🏅 QA</a>
-
-            <div class="text-gray-400 text-xs mt-4">OTHER</div>
-
-            <a href="/calendar" class="block px-3 py-2 hover:bg-gray-800 rounded">📅 ปฏิทิน</a>
-
-            <form method="POST" action="{{ route('logout') }}" class="mt-4">
-                @csrf
-                <button class="w-full text-left px-3 py-2 bg-red-600 rounded hover:bg-red-700">
-                    🚪 Logout
-                </button>
-            </form>
-
-        </nav>
-    </aside>
-
-
-    <!-- 🟡 MAIN -->
-    <div class="flex-1 flex flex-col">
-
-        <!-- 🔷 TOPBAR -->
-        <div class="bg-white shadow px-6 py-4 flex justify-between items-center">
-
-            <div>
-                <h1 class="text-xl font-bold">📊 Admin Dashboard</h1>
-                <p class="text-sm text-gray-500">
-                    ยินดีต้อนรับ {{ auth()->user()->name }}
-                </p>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <img 
-                    src="{{ auth()->user()->profile_image 
-                        ? asset('storage/' . auth()->user()->profile_image) 
-                        : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) }}"
-                    class="w-10 h-10 rounded-full border">
-
-                <span class="text-sm">{{ auth()->user()->name }}</span>
-            </div>
+            </p>
 
         </div>
 
+        <div class="overflow-x-auto">
 
-        <!-- 🔶 CONTENT -->
-        <div class="p-6 space-y-6">
+            <table class="w-full text-sm">
 
-            <!-- 🔶 STATS -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <thead class="bg-gray-100">
 
-                <div class="bg-white p-5 rounded-xl shadow">
-                    <p class="text-gray-500 text-sm">Total Users</p>
-                    <h2 class="text-2xl font-bold">{{ $totalUsers }}</h2>
-                </div>
+                    <tr>
 
-                <div class="bg-yellow-100 p-5 rounded-xl shadow">
-                    <p class="text-gray-500 text-sm">Pending</p>
-                    <h2 class="text-2xl font-bold">{{ $pendingUsers }}</h2>
-                </div>
+                        <th class="p-4 text-left">
+                            โรงเรียน
+                        </th>
 
-                <div class="bg-green-100 p-5 rounded-xl shadow">
-                    <p class="text-gray-500 text-sm">Approved</p>
-                    <h2 class="text-2xl font-bold">{{ $approvedUsers }}</h2>
-                </div>
+                        <th class="p-4 text-center">
+                            จำนวนผู้ใช้งาน
+                        </th>
 
-                <div class="bg-red-100 p-5 rounded-xl shadow">
-                    <p class="text-gray-500 text-sm">Rejected</p>
-                    <h2 class="text-2xl font-bold">{{ $rejectedUsers }}</h2>
-                </div>
+                    </tr>
 
-            </div>
+                </thead>
 
+                <tbody>
 
-            <!-- 🔷 REPORT -->
-            <div>
-                <h2 class="text-lg font-bold mb-3">📁 ระบบรายงาน 5 งาน</h2>
+                    @foreach($schools as $school)
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <tr class="border-t hover:bg-gray-50">
 
-                    <a href="/reports/academic" class="bg-blue-500 text-white p-4 rounded-xl shadow hover:scale-105 transition">
-                        บริหารวิชาการ
-                    </a>
+                        <td class="p-4">
+                            {{ $school->school }}
+                        </td>
 
-                    <a href="/reports/personnel" class="bg-green-500 text-white p-4 rounded-xl shadow hover:scale-105 transition">
-                        บริหารบุคคล
-                    </a>
+                        <td class="p-4 text-center font-semibold">
+                            {{ $school->total }}
+                        </td>
 
-                    <a href="/reports/finance" class="bg-yellow-500 text-white p-4 rounded-xl shadow hover:scale-105 transition">
-                        งบประมาณ
-                    </a>
+                    </tr>
 
-                    <a href="/reports/general" class="bg-purple-500 text-white p-4 rounded-xl shadow hover:scale-105 transition">
-                        งานทั่วไป
-                    </a>
+                    @endforeach
 
-                    <a href="/reports/qa" class="bg-red-500 text-white p-4 rounded-xl shadow hover:scale-105 transition">
-                        ประกันคุณภาพ
-                    </a>
+                </tbody>
 
-                </div>
-            </div>
+            </table>
 
+        </div>
 
-            <!-- 🔷 ACTION -->
-            <div class="flex gap-3">
+    </div>
 
-                <a href="{{ route('schools.create') }}"
-                   class="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600">
-                    ➕ เพิ่มโรงเรียน
-                </a>
+    <!-- ============================= -->
+    <!-- Footer -->
+    <!-- ============================= -->
 
-                <a href="{{ route('admin.users.pending') }}"
-                   class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    👥 ตรวจสอบผู้ใช้งาน
-                </a>
+    <div class="bg-white rounded-xl shadow p-6">
 
-            </div>
+        <div class="text-center text-gray-600">
 
+            <h3 class="font-semibold text-lg">
+                PSPP Platform Version 1.0 (Prototype)
+            </h3>
 
-            <!-- 🔷 TABLE -->
-            <div class="bg-white rounded-xl shadow p-6">
+            <p class="mt-2">
+                ระบบบริหารจัดการโรงเรียนพระปริยัติธรรม แผนกสามัญศึกษา
+            </p>
 
-                <h2 class="text-lg font-semibold mb-4">Users by School</h2>
+            <p>
+                กลุ่มจังหวัดแพร่
+            </p>
 
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-gray-100 text-left">
-                            <th class="p-3">School</th>
-                            <th class="p-3">Total Users</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($schools as $school)
-                        <tr class="border-t hover:bg-gray-50">
-                            <td class="p-3">{{ $school->school }}</td>
-                            <td class="p-3">{{ $school->total }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-
-            </div>
+            <p class="mt-3 text-sm text-gray-500">
+                เพื่อสนับสนุนการบริหารจัดการโรงเรียนด้วยเทคโนโลยีสารสนเทศ
+            </p>
 
         </div>
 

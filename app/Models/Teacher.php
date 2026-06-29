@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Teacher extends Model
+{
+    protected $table = 'teachers';
+
+    protected $fillable = [
+        'user_id',
+        'teacher_code',
+        'prefix',
+        'first_name',
+        'last_name',
+        'position',
+        'department',
+        'subject',
+        'school_id',
+        'temple_id',
+        'is_monk',
+        'hire_date',
+        'status',
+    ];
+
+    /**
+     * ความสัมพันธ์กับ users
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * ความสัมพันธ์กับ temple (ถ้ามี)
+     */
+    public function temple()
+    {
+        return $this->belongsTo(Temple::class);
+    }
+
+    /**
+     * helper: ชื่อเต็ม
+     */
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->prefix}{$this->first_name} {$this->last_name}");
+    }
+
+    /**
+     * ความสัมพันธ์กับ subjects
+     */
+    public function subjects()
+    {
+        return $this->belongsToMany(Subject::class, 'teacher_subjects');
+    }
+}

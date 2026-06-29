@@ -9,15 +9,17 @@
             🏠 หน้าแรก
         </a>
 
-        <a href="#"
-           class="block px-3 py-2 rounded hover:bg-blue-700">
-            📘 รายวิชาของฉัน
+        <a href="{{ route('teacher.subjects') }}"
+            class="block px-3 py-2 rounded hover:bg-blue-700">
+             📚 รายวิชาของฉัน
         </a>
-
-        <a href="#"
-           class="block px-3 py-2 rounded hover:bg-blue-700">
-            👨‍🎓 นักเรียน
+        
+        
+        <a href="{{ route('teacher.subjects.manage') }}"
+                 class="block px-3 py-2 rounded hover:bg-blue-700">
+                👍 จัดการรายวิชาที่สอน
         </a>
+        
 
         <a href="#"
            class="block px-3 py-2 rounded hover:bg-blue-700">

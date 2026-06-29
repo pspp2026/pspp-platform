@@ -76,6 +76,18 @@
                         <div class="grid md:grid-cols-2 gap-4">
 
                             <div>
+                                <label class="text-sm">รหัสนักเรียน</label>
+                                <input value="{{ $user->student->student_code ?? '-' }}"
+                                       class="w-full border p-2 rounded-lg bg-gray-100" readonly>
+                            </div>
+
+                            <div>
+                                <label class="text-sm">เลขบัตรประชาชน</label>
+                                <input value="{{ $user->student->id_card ?? '-' }}"
+                                       class="w-full border p-2 rounded-lg bg-gray-100" readonly>
+                            </div>
+
+                            <div>
                                 <label class="text-sm">ชื่อ-นามสกุล</label>
                                 <input value="{{ $user->student->full_name ?? '-' }}"
                                        class="w-full border p-2 rounded-lg bg-gray-100" readonly>
@@ -88,31 +100,20 @@
                             </div>
 
                             <div>
-                                <label class="text-sm">วัด</label>
+                                <label class="text-sm">สังกัดวัด</label>
                                 <input value="{{ $user->student->temple->temple_name ?? '-' }}"
                                        class="w-full border p-2 rounded-lg bg-gray-100" readonly>
-                            </div>
-
-                            <div>
-                                <label class="text-sm">รหัสนักเรียน</label>
-                                <input value="{{ $user->student->student_code ?? '-' }}"
-                                       class="w-full border p-2 rounded-lg bg-gray-100" readonly>
-                            </div>
-
-                            <div>
-                                <label class="text-sm">เลขบัตรประชาชน</label>
-                                <input value="{{ $user->student->id_card ?? '-' }}"
-                                       class="w-full border p-2 rounded-lg bg-gray-100" readonly>
-                            </div>
+                            </div>     
 
                         </div>
                     </div>
 
                     {{-- CLASS --}}
-                    @php
-                        $enroll = optional($user->student)->enrollments->sortByDesc('academic_year')->first();
-                    @endphp
-
+                        @php
+                            $enroll = $user->student
+                                ? $user->student->enrollments()->latest()->first()
+                                : null;
+                        @endphp
                     <div>
                         <h2 class="font-semibold text-gray-700 mb-3">ข้อมูลการศึกษา</h2>
 
@@ -172,8 +173,7 @@
 
                     {{-- BUTTON --}}
                     <div class="flex justify-between pt-4">
-                        <a href="/" class="text-gray-500">🏠 HOME</a>
-
+                     
                         <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
                             💾 บันทึก
                         </button>

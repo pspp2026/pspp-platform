@@ -21,7 +21,7 @@
             สมัครสมาชิก
         </h2>
 
-        {{-- 🔴 error --}}
+        {{-- 🔴 error รวม --}}
         @if ($errors->any())
             <div class="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
                 <ul>
@@ -35,24 +35,29 @@
         {{-- 📋 FORM --}}
         <form method="POST" action="{{ route('register.store') }}">
             @csrf
-
-            {{-- ชื่อ --}}
             <div class="mb-4">
                 <label class="block mb-1 text-sm">ชื่อ</label>
                 <input type="text" name="name" value="{{ old('name') }}"
-                    class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
                     required>
-            </div>
 
-            {{-- Email --}}
+                @error('name')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+            {{-- 🔹 Email --}}
             <div class="mb-4">
                 <label class="block mb-1 text-sm">Email</label>
                 <input type="email" name="email" value="{{ old('email') }}"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     required>
+
+                @error('email')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            {{-- โรงเรียน (🔥 เปลี่ยนตรงนี้สำคัญ) --}}
+            {{-- 🔹 โรงเรียน --}}
             <div class="mb-4">
                 <label class="block mb-1 text-sm">โรงเรียน</label>
 
@@ -60,27 +65,39 @@
                     class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
                     required>
 
-                    <option value="">เลือกโรงเรียน</option>
+                    <option value="" disabled {{ old('school_id') ? '' : 'selected' }}>
+                        เลือกโรงเรียน
+                    </option>
 
-                    @foreach($schools as $s)
-                        <option value="{{ $s->id }}"
-                            {{ old('school_id') == $s->id ? 'selected' : '' }}>
-                            {{ $s->school_name }}
-                        </option>
-                    @endforeach
+                    @isset($schools)
+                        @foreach($schools as $s)
+                            <option value="{{ $s->id }}"
+                                {{ old('school_id') == $s->id ? 'selected' : '' }}>
+                                {{ $s->school_name }}
+                            </option>
+                        @endforeach
+                    @endisset
 
                 </select>
+
+                @error('school_id')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            {{-- Password --}}
+            {{-- 🔹 Password --}}
             <div class="mb-4">
                 <label class="block mb-1 text-sm">รหัสผ่าน</label>
                 <input type="password" name="password"
                     class="w-full border rounded-lg px-3 py-2"
                     required>
+
+                @error('password')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            {{-- Confirm --}}
+            {{-- 🔹 Confirm Password --}}
             <div class="mb-6">
                 <label class="block mb-1 text-sm">ยืนยันรหัสผ่าน</label>
                 <input type="password" name="password_confirmation"
@@ -88,7 +105,7 @@
                     required>
             </div>
 
-            {{-- ปุ่ม --}}
+            {{-- 🔹 ปุ่ม --}}
             <button type="submit"
                 class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
                 สมัครสมาชิก

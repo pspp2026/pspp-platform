@@ -6,10 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Student extends Model
 {
-    // 🔥 กำหนด field ที่อนุญาตให้ insert/update
+    /**
+     * --------------------------------------------------------------------------
+     * Mass Assignment
+     * --------------------------------------------------------------------------
+     */
     protected $fillable = [
         'user_id',
         'school_id',
+        'classroom_id',
         'student_code',
         'prefix',
         'first_name',
@@ -23,43 +28,81 @@ class Student extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | 🔗 RELATIONSHIPS
+    | Relationships
     |--------------------------------------------------------------------------
     */
 
-    // 👤 นักเรียนเป็นของ User
+    /**
+     * ผู้ใช้งาน
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // 🏫 โรงเรียน
+    /**
+     * โรงเรียน
+     */
     public function school()
     {
         return $this->belongsTo(School::class);
     }
 
-    // 🏯 วัด
+    /**
+     * วัด
+     */
     public function temple()
     {
         return $this->belongsTo(Temple::class);
     }
 
-    // 🎓 การลงทะเบียนเรียน (ชั้น / เทอม / ปี)
+    /**
+     * ประวัติการลงทะเบียนเรียนทั้งหมด
+     */
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class);
     }
 
+    /**
+     * การลงทะเบียนเรียนปัจจุบัน
+     */
+    public function currentEnrollment()
+    {
+        return $this->hasOne(Enrollment::class)
+            ->where('status', 'active')
+            ->latest('academic_year')
+            ->latest('semester');
+    }
+
+    /**
+     * ห้องเรียน
+     */
+    public function classroom()
+    {
+        return $this->belongsTo(Classroom::class);
+    }
+
     /*
     |--------------------------------------------------------------------------
-    | 🎯 ACCESSORS (ตัวช่วยแสดงผล)
+    | Accessors
     |--------------------------------------------------------------------------
     */
 
-    // 👤 ชื่อเต็ม (เอาไปใช้ใน Blade ได้เลย)
+    /**
+     * ชื่อเต็ม
+     */
     public function getFullNameAttribute()
     {
         return trim("{$this->prefix}{$this->first_name} {$this->last_name}");
     }
+
+    /**
+     * คะแนน
+     */
+    public function scores()
+    {
+        return $this->hasMany(Score::class);
+    }
+
 }

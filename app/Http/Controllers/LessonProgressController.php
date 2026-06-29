@@ -1,3 +1,7 @@
+<?php
+
+namespace App\Http\Controllers;
+
 use App\Models\LessonProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -7,7 +11,7 @@ class LessonProgressController extends Controller
     // เริ่มเรียน (สร้าง record ถ้ายังไม่มี)
     public function startLesson($lessonId)
     {
-        $userId = auth()->id();
+        $userId = $this->getUserId();
 
         $progress = LessonProgress::firstOrCreate(
             [
@@ -91,9 +95,16 @@ class LessonProgressController extends Controller
 
     private function getProgressOrFail($lessonId)
     {
-        return LessonProgress::where('user_id', auth()->id())
+        return LessonProgress::where('user_id', $this->getUserId())
             ->where('lesson_id', $lessonId)
             ->firstOrFail();
+    }
+
+    // Safely retrieve authenticated user id (avoids undefined method issues in static analysis)
+    private function getUserId()
+    {
+        $user = auth()->user();
+        return $user ? $user->getAuthIdentifier() : null;
     }
 
     // เพิ่มเวลาแบบปลอดภัย (กันค่าติดลบ/เกินจริง)

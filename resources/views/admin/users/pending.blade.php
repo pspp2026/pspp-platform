@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
 
@@ -75,11 +75,36 @@
                                 {{ $user->email }}
                             </td>
 
+                            {{-- 🔥 แก้ตรงนี้ --}}
                             <td class="p-3">
-                                <span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
-                                    {{ $user->role }}
-                                </span>
+                                <select name="roles[{{ $user->id }}]"
+                                    class="border rounded px-2 py-1 text-sm">
+
+                                    <option value="">-- เลือก role --</option>
+
+                                    <option value="teacher" 
+                                        {{ $user->role == 'teacher' ? 'selected' : '' }}>
+                                        ครู
+                                    </option>
+
+                                    <option value="student"
+                                        {{ $user->role == 'student' ? 'selected' : '' }}>
+                                        นักเรียน
+                                    </option>
+
+                                    <option value="staff"
+                                        {{ $user->role == 'staff' ? 'selected' : '' }}>
+                                        เจ้าหน้าที่
+                                    </option>
+
+                                    <option value="director"
+                                        {{ $user->role == 'director' ? 'selected' : '' }}>
+                                        ผู้บริหาร/ผู้อำนวยการ
+                                    </option>
+
+                                </select>
                             </td>
+
                         </tr>
                     @empty
                         <tr>

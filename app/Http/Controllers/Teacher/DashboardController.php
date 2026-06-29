@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -12,167 +13,175 @@ use Illuminate\Support\Str;
 use App\Models\Province;
 use App\Models\School;
 use App\Models\User;
-
+use App\Models\Subject;
+use App\Models\Teacher;
+use App\Models\Schedule;
+use App\Models\AcademicTerm;
 
 class DashboardController extends Controller
 {
-    public function index()
+   public function index()
     {
-        return view('teacher.dashboard');
+        $user = Auth::user();
+
+        $teacher = $user->teacher;
+
+        if (!$teacher) {
+            return back()->withErrors([
+                'error' => 'ไม่พบข้อมูลครู'
+            ]);
+        }
+
+        // จำนวนวิชาที่สอน
+        $subjectCount = $teacher->subjects()->count();
+
+        // ภาคเรียนปัจจุบัน
+        $currentTerm = AcademicTerm::where('is_active', 1)->first();
+
+        // ตารางสอนทั้งหมดของภาคเรียน
+        $schedules = collect();
+
+        // ตารางสอนวันนี้
+        $todaySchedules = collect();
+
+        if ($currentTerm) {
+
+            // ตารางสอนทั้งหมด
+            $schedules = Schedule::with([
+                    'subject',
+                    'classroom',
+                    'period',
+                    'academicTerm'
+                ])
+                ->where('teacher_id', $teacher->id)
+                ->where('academic_term_id', $currentTerm->id)
+                ->orderBy('day_of_week')
+                ->orderBy('period_id')
+                ->get();
+
+            // วันปัจจุบัน (Monday, Tuesday, ...)
+            $today = now()->englishDayOfWeek;
+
+            // ตารางสอนวันนี้
+            $todaySchedules = $schedules
+                ->where('day_of_week', $today)
+                ->values();
+        }
+
+        return view(
+            'teacher.dashboard',
+            compact(
+                'subjectCount',
+                'schedules',
+                'todaySchedules'
+            )
+        );
+    }
+        
+       /** จัดการวิชาที่สอน */
+    public function manageSubjects()
+    {
+        $user = Auth::user();
+
+        $teacher = $user->teacher;
+
+        if (!$teacher) {
+            return back()->withErrors([
+                'error'=>'ไม่พบข้อมูลครู'
+            ]);
+        }
+
+
+        // เรียงตามกลุ่มสาระ
+        $subjects = Subject::with('group')
+            ->orderBy('group_id')
+            ->orderBy('subject_code')
+            ->get();
+
+
+        // วิชาที่เลือกไว้แล้ว
+        $selectedSubjects = $teacher->subjects()
+            ->pluck('subjects.id')
+            ->toArray();
+
+
+        return view(
+            'teacher.subjects.manage',
+            compact(
+                'subjects',
+                'selectedSubjects'
+            )
+        );
     }
 
-    public function profile()
+    /**
+     * วิชาที่ฉันสอน
+     */
+    public function mySubjects()
     {
-        return view('teacher.profile', [
-            'schools' => School::all(),
-            'provinces' => Province::orderBy('name_th', 'asc')->get(),
-        ]);
-    }
+        $teacher = Auth::user()->teacher;
 
-    public function updateProfile(Request $request)
-    {
-        $user = auth()->user();
+        $currentTermId = AcademicTerm::where('is_active', 1)
+            ->value('id');
 
-        // ✅ validation
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'external_code' => 'nullable|string|max:50',
-            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048|dimensions:min_width=100,min_height=100',
-        ]);
-      
-        // 🔥 หาโรงเรียน
-        $school = null;
-        if ($request->school_id) {
-            $school = School::find($request->school_id);
-        }
+        $subjectIds = Schedule::where('teacher_id', $teacher->id)
+            ->where('academic_term_id', $currentTermId)
+            ->distinct()
+            ->pluck('subject_id');
 
-        // =========================
-        // 🖼️ upload profile image
-        // =========================
-        if ($request->hasFile('profile_image')) {
+        $subjects = Subject::with([
+                'units',
+                'group'
+            ])
+            ->whereIn('id', $subjectIds)
+            ->orderBy('subject_name')
+            ->get();
 
-            $file = $request->file('profile_image');
+           $teacher = Auth::user()->teacher;
 
-            // 🔥 ใช้ user_code เป็นชื่อไฟล์
-            $userCode = $user->user_code ?? 'USER_UNKNOWN';
+            $subjectCount = Schedule::where('teacher_id', $teacher->id)
+                ->distinct('subject_id')
+                ->count('subject_id');
 
-            $time = now()->format('Ymd_His');
-            $ext = $file->getClientOriginalExtension();
+                $currentTerm = AcademicTerm::where('is_active', 1)->first();
 
-            $filename = "{$userCode}_{$time}.{$ext}";
+            $todaySchedules = collect();
 
-            // 🔥 folder (เดี๋ยวเราจะปรับเป็น school_code ใน step ต่อไป)
-            $folder = "profiles";
+            if ($currentTerm) {
 
-            // 🔥 ลบรูปเก่า
-            if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
+                $today = now()->englishDayOfWeek;
+
+                $todaySchedules = Schedule::with([
+                        'subject',
+                        'classroom',
+                        'period'
+                    ])
+                    ->where('teacher_id', $teacher->id)
+                    ->where('academic_term_id', $currentTerm->id)
+                    ->where('day_of_week', $today)
+                    ->orderBy('period_id')
+                    ->get();
+
             }
+            $schedules = Schedule::with([
+                    'subject',
+                    'classroom',
+                    'period',
+                    'academicTerm'
+                ])
+                ->where('teacher_id', $teacher->id)
+                ->orderBy('academic_term_id')
+                ->orderBy('day_of_week')
+                ->get()
+                ->sortBy(['academicTerm.semester', 'asc'])
+                ->groupBy(function ($schedule) {
+                    return $schedule->academicTerm->academic_year . '-' .
+                        $schedule->academicTerm->semester;
+                });
 
-            // 🔥 เก็บไฟล์
-            $path = $file->storeAs($folder, $filename, 'public');
-
-            // 🔥 save path
-            $user->profile_image = $path;
-        }
-
-        // =========================
-        // 🖼️ save cropped image
-        // =========================
-        if ($request->cropped_image) {
-
-            $image = $request->cropped_image;
-
-            // 🔥 ตัด header base64 ออก
-            $image = str_replace('data:image/jpeg;base64,', '', $image);
-            $image = str_replace(' ', '+', $image);
-
-            // 🔥 แปลงเป็น binary
-            $imageData = base64_decode($image);
-
-            // 🔥 ตั้งชื่อไฟล์ (ใช้ user_code)
-            $userCode = $user->user_code ?? 'USER';
-            $filename = $userCode . '_' . now()->format('Ymd_His') . '.jpg';
-
-            // 🔥 folder (เดี๋ยวเราจะ upgrade เป็น school_code)
-            $path = "profiles/" . $filename;
-
-            // 🔥 ลบรูปเก่า
-            if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
-            }
-
-            // 🔥 save
-            Storage::disk('public')->put($path, $imageData);
-
-            $user->profile_image = $path;
-        }
-
-        // =========================
-        // 🔥 assign (ไม่ใช้ update)
-        // =========================
-        $user->name = $request->name;
-        $user->email = $request->email;
-
-        $user->id_card = $request->id_card;
-        $user->name_th = $request->name_th;
-        $user->name_en = $request->name_en;
-
-        $user->address1 = $request->address1;
-        $user->address2 = $request->address2;
-
-        $user->province_id = $request->province_id;
-        $user->district_id = $request->district_id;
-        $user->subdistrict_id = $request->subdistrict_id;
-
-        $user->phone = $request->phone;
-
-        $user->school_id = $request->school_id;
-        $user->external_code = $request->external_code;
-
-        // =========================
-        // 🔥 generate user_code
-        // =========================
-        if ($school && $request->external_code) {
-
-            $prefix = match($user->role) {
-                'teacher' => 'TCH',
-                'student' => 'STD',
-                'staff' => 'STF',
-                default => 'USR'
-            };
-
-            $schoolCode = $school->school_code ?? '00000000';
-
-            $userCode = "{$prefix}-{$schoolCode}-{$request->external_code}";
-
-            // 🔒 กันซ้ำ
-            $exists = User::where('user_code', $userCode)
-                ->where('id', '!=', $user->id)
-                ->exists();
-
-            if ($exists) {
-                return back()->withErrors([
-                    'external_code' => 'รหัสนี้ถูกใช้แล้ว'
-                ])->withInput();
-            }
-
-            $user->user_code = $userCode;
-        }
-
-        // =========================
-        // 🔐 password (ถ้ามี)
-        // =========================
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-
-        // =========================
-        // ✅ save ครั้งเดียว
-        // =========================
-        $user->save();
-
-        return back()->with('success', 'บันทึกข้อมูลเรียบร้อย');
+        return view(
+            'teacher.subjects.index',
+            compact('subjects')
+        );
     }
 }

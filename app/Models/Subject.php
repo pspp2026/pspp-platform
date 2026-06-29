@@ -41,16 +41,17 @@ class Subject extends Model
     }
 
     // 🔹 หลักที่ 3 → ปี (1–3)
-    public function getYearAttribute()
+    public function getCurriculumYearAttribute()
     {
-        return substr($this->subject_code, 2, 1);
+        return (int) substr($this->subject_code, 2, 1);
     }
 
     // 🔹 คำนวณ class (ม.1–ม.6)
     public function getClassNameAttribute()
     {
-        $level = $this->level;
-        $year  = $this->year;
+        $level = (int) $this->level;
+
+        $year = $this->curriculum_year;
 
         $class = ($level == 2 ? 0 : 3) + $year;
 
@@ -85,4 +86,22 @@ class Subject extends Model
     {
         return $this->subject_type === 'เพิ่มเติม';
     }
+    //
+    public function units()
+    {
+        return $this->hasMany(LearningUnit::class);
+    }
+
+    //* ความสัมพันธ์กับ teachers (ผ่าน pivot table)
+    public function teachers()
+    {        return $this->belongsToMany(Teacher::class, 'teacher_subjects');
+    }   
+
+//*schedules
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+
 }

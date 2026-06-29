@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             SubjectGroupSeeder::class,
             SubjectSeeder::class,
             SchoolSeeder::class,
+            SuperAdminSeeder::class,
         ]);
 
         User::factory()->create([

@@ -32,7 +32,7 @@ class RegisterController extends Controller
             'email'     => $request->email,
             'password'  => Hash::make($request->password),
             'school_id' => $request->school_id, // ✅ ใช้ id
-            'role'      => 'teacher',
+            'role'      => 'null', // รอ admin กำหนด role
             'status'    => 'pending',
         ]);
 

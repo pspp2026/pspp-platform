@@ -1,28 +1,10 @@
-@extends('layouts.app')
+@extends('layouts.teacher')
 
-@section('content')
+@section('page-title', 'โปรไฟล์ของฉัน')
 
-<div class="flex min-h-screen">
+@section('teacher-content')
 
-    @include('teacher.sidebar')
-
-    <div class="flex-1 bg-gray-100">
-
-        {{-- TOPBAR --}}
-        <div class="bg-white shadow px-6 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold">โปรไฟล์ของฉัน</h1>
-
-            <div class="flex items-center gap-3">
-                <img  src="{{ auth()->user()->profile_image 
-                        ? asset('storage/' . auth()->user()->profile_image) 
-                        : asset('images/default-user.png') }}"
-                    class="w-10 h-10 rounded-full">
-                <span>{{ auth()->user()->name }}</span>
-            </div>
-        </div>
-
-        <div class="p-6">
-
+  
             <div class="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-md">
 
                 @if(session('success'))
@@ -70,25 +52,65 @@
                     <div class="mb-4">
                         <label class="text-sm font-medium">รหัสโรงเรียน</label>
                         <input 
-                            value="{{ auth()->user()->school->school_code ?? '' }}"
+                            type="text"
+                            value="{{ optional(auth()->user()->school)->school_code ?? '' }}"
                             class="w-full border p-2 rounded-lg bg-gray-100"
                             readonly
                         >
                     </div>
 
                     {{-- BASIC --}}
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <input name="name" value="{{ auth()->user()->name }}" class="border p-2 rounded-lg" placeholder="ชื่อ">
-                        <input name="email" value="{{ auth()->user()->email }}" class="border p-2 rounded-lg" placeholder="Email">
+                   <div class="grid md:grid-cols-2 gap-4">
+
+                    {{-- NAME --}}
+                    <div>
+                        <label class="text-sm font-medium">
+                            ชื่อเข้าใช้งาน
+                        </label>
+
+                        <input 
+                            name="name"
+                            value="{{ auth()->user()->name }}"
+                            class="w-full border p-2 rounded-lg"
+                            placeholder="ชื่อ"
+                        >
                     </div>
+
+
+                    {{-- EMAIL --}}
+                    <div>
+                        <label class="text-sm font-medium">
+                            Email
+                        </label>
+
+                        <input 
+                            name="email"
+                            value="{{ auth()->user()->email }}"
+                            class="w-full border p-2 rounded-lg"
+                            placeholder="Email"
+                        >
+                    </div>
+
+                </div>
 
                     {{-- EXTRA --}}
                     <div class="grid md:grid-cols-3 gap-4 mt-4">
-                        <input name="id_card" value="{{ auth()->user()->id_card }}" class="border p-2 rounded-lg" placeholder="เลขบัตรประชาชน">
-                        <input name="name_th" value="{{ auth()->user()->name_th }}" class="border p-2 rounded-lg" placeholder="ชื่อ-สกุล (ไทย)">
-                        <input name="name_en" value="{{ auth()->user()->name_en }}" class="border p-2 rounded-lg" placeholder="ชื่อ-สกุล (EN)">
+                        {{--Phone--}}
+                        <div
+                        <label>เบอร์โทรศัพท์</label>
+                        <input 
+                            name="phone"
+                            value="{{ old('phone', auth()->user()->phone) }}"
+                            class="border p-2 rounded-lg w-full"
+                            placeholder="เบอร์โทรศัพท์">
                     </div>
-                    {{--รหัสครู--}}
+                        <div>
+                            <label>เลขบัตรประชาชน</label>
+                            <input name="id_card" value="{{ auth()->user()->id_card }}" 
+                            class="border p-2 rounded-lg w-full" 
+                            placeholder="เลขบัตรประชาชน">
+                        </div>
+                            {{--รหัสครู--}}
                     <div>
                         <label>รหัสครู</label>
                         <input 
@@ -98,52 +120,121 @@
                             placeholder="กรอกรหัสที่หน่วยงานกำหนด"
                         >
                     </div>
-
-                    {{--Phone--}}
-                    <div class="grid md:grid-cols-2 gap-4 mt-4">
-                        <input 
-                            name="phone"
-                            value="{{ old('phone', auth()->user()->phone) }}"
-                            class="border p-2 rounded-lg"
-                            placeholder="เบอร์โทรศัพท์"
-                        >
+                     
                     </div>
+                        
+                    {{--ชื่อนามสกุล--}}
+                    <div class="grid md:grid-cols-2 gap-4 mt-4">
+                    
+                    <div>
+                        <label>ชื่อ-สกุล (ไทย)</label>
+                        <input 
+                            name="name_th" 
+                            value="{{ auth()->user()->name_th }}" 
+                            class="border p-2 rounded-lg w-full" 
+                            placeholder="ชื่อ-สกุล (ไทย)">
+                    </div>
+                    <div>
+                        <label>Full-name (EN)</label>
+                        <input 
+                            name="name_en" 
+                            value="{{ auth()->user()->name_en }}" 
+                            class="border p-2 rounded-lg w-full" 
+                            placeholder="Full-name (EN)">
+
+                    </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4 mt-4">
+                   
                     {{-- ADDRESS --}}
-                    <div class="mt-4">
+                    <div class="mt-2">
                         <label class="block text-sm font-medium mb-1">ที่อยู่</label>
-                        <textarea name="address1" class="w-full border p-2 rounded-lg"
+                        <textarea name="address1" class="w-full border p-2 rounded-lg w-full"
                             placeholder="บ้านเลขที่ / ถนน">{{ auth()->user()->address1 }}</textarea>
                     </div>
 
                     <div class="mt-2">
                         <label class="block text-sm font-medium mb-1">รายละเอียดเพิ่มเติม</label>
-                        <textarea name="address2" class="w-full border p-2 rounded-lg"
+                        <textarea name="address2" class="w-full border p-2 rounded-lg w-full"
                             placeholder="อาคาร / ชั้น / ห้อง">{{ auth()->user()->address2 }}</textarea>
                     </div>
+                    </div>
 
-                    {{-- LOCATION --}}
+                   {{-- LOCATION --}}
                     <div class="grid md:grid-cols-3 gap-4 mt-4">
-                        <select id="province" name="province_id" class="border p-2 rounded-lg">
-                            <option value="">จังหวัด</option>
-                            @foreach($provinces as $p)
-                                <option value="{{ $p->province_id }}"
-                                    @selected(auth()->user()->province_id == $p->province_id)>
-                                    {{ $p->name_th }}
-                                </option>
-                            @endforeach
-                        </select>
 
-                        <select id="district" name="district_id" class="border p-2 rounded-lg"></select>
+                        {{-- จังหวัด --}}
+                        <div>
+                            <label class="block text-sm font-medium mb-1">
+                                จังหวัด
+                            </label>
 
-                        <select id="subdistrict" name="subdistrict_id" class="border p-2 rounded-lg"></select>
+                            <select
+                                id="province"
+                                name="province_id"
+                                class="w-full border p-2 rounded-lg">
+
+                                <option value="">เลือกจังหวัด</option>
+
+                                @foreach($provinces as $p)
+                                    <option
+                                        value="{{ $p->province_id }}"
+                                        @selected(auth()->user()->province_id == $p->province_id)>
+                                        {{ $p->name_th }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+                        </div>
+
+                        {{-- อำเภอ --}}
+                        <div>
+                            <label class="block text-sm font-medium mb-1">
+                                อำเภอ
+                            </label>
+
+                            <select
+                                id="district"
+                                name="district_id"
+                                class="w-full border p-2 rounded-lg">
+
+                                <option value="">เลือกอำเภอ</option>
+
+                            </select>
+                        </div>
+
+                        {{-- ตำบล --}}
+                        <div>
+                            <label class="block text-sm font-medium mb-1">
+                                ตำบล
+                            </label>
+
+                            <select
+                                id="subdistrict"
+                                name="subdistrict_id"
+                                class="w-full border p-2 rounded-lg">
+
+                                <option value="">เลือกตำบล</option>
+
+                            </select>
+                        </div>
+
                     </div>
 
                     {{-- ZIPCODE --}}
-                    <input id="zipcode" name="zipcode"
-                        value="{{ auth()->user()->zipcode }}"
-                        class="border p-2 mt-4 w-full rounded-lg bg-gray-100"
-                        readonly>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium mb-1">
+                            รหัสไปรษณีย์
+                        </label>
 
+                        <input
+                            id="zipcode"
+                            name="zipcode"
+                            value="{{ auth()->user()->zipcode }}"
+                            class="w-full border p-2 rounded-lg bg-gray-100"
+                            readonly>
+                    </div>
                     {{-- PASSWORD --}}
                     <div class="mt-4">
                         <label class="block text-sm font-medium mb-1">รหัสผ่านใหม่</label>

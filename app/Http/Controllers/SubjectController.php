@@ -45,4 +45,12 @@ class SubjectController extends Controller
             'type' => $type,
         ]);
     }
+//เพิ่มรายละเอียดวิชา
+    public function show(Subject $subject)
+    {
+        $subject->load('units.plans.teacher');
+
+        return view('teacher.subjects.show', compact('subject'));
+    }
+
 }

@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Enrollment;
+use App\Policies\EnrollmentPolicy;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL; // 👈 เพิ่มบรรทัดนี้
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,9 +17,15 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // 👇 เพิ่มตรงนี้
+        // บังคับใช้ HTTPS บน Production
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }
+
+        // Register Policies
+        Gate::policy(
+            Enrollment::class,
+            EnrollmentPolicy::class
+        );
     }
 }
