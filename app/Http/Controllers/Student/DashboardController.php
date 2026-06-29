@@ -4,13 +4,12 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Lesson;
 use App\Models\Province;
-use App\Models\Schedule;
 
 class DashboardController extends Controller
 {
@@ -21,30 +20,14 @@ class DashboardController extends Controller
     {
         $lessons = Lesson::all();
 
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (!$user) {
-            abort(403);
-        }
-
-        $student = $user->student;
-
-        if (!$student) {
-            abort(404, 'ไม่พบข้อมูลนักเรียน');
-        }
-
-        // =========================
-        // ความก้าวหน้าการเรียน
-        // =========================
-        $completedLessons = $user
+        $completedLessons = Auth::user()
             ->lessonProgress()
             ->pluck('lesson_id')
             ->toArray();
 
         $totalLessons = $lessons->count();
 
-        $completed = $user
+        $completed = Auth::user()
             ->lessonProgress()
             ->whereIn('lesson_id', $lessons->pluck('id'))
             ->count();
@@ -53,106 +36,11 @@ class DashboardController extends Controller
             ? round(($completed / $totalLessons) * 100)
             : 0;
 
-        // =========================
-        // การลงทะเบียนปัจจุบัน
-        // =========================
-        $currentEnrollment = $student->currentEnrollment()
-            ->with([
-                'classroom',
-                'academicTerm',
-                'school'
-            ])
-            ->first();
-
-        // =========================
-        // ตารางเรียน
-        // =========================
-        $schedules = collect();
-
-        if (
-            $currentEnrollment &&
-            $currentEnrollment->classroom_id &&
-            $currentEnrollment->academic_term_id
-        ) {
-
-            $schedules = Schedule::with([
-                'subject',
-                'teacher',
-                'classroom',
-                'period',
-                'academicTerm'
-            ])
-            ->where('classroom_id', $currentEnrollment->classroom_id)
-            ->where('academic_term_id', $currentEnrollment->academic_term_id)
-            ->orderBy('day_of_week')
-            ->orderBy('period_id')
-            ->get();
-
-        // =========================
-        // ตารางเรียนรายสัปดาห์
-        // =========================
-
-        $timetable = [];
-
-        foreach ($schedules as $schedule) {
-
-            $timetable[$schedule->day_of_week][$schedule->period_id] = $schedule;
-
-        }
-
-        // =========================
-        // รายวิชา
-        // =========================
-
-        $subjects = $schedules
-            ->pluck('subject')
-            ->filter()
-            ->unique('id')
-            ->values();
-
-        // =========================
-        // ครูผู้สอน
-        // =========================
-
-        $teachers = $schedules
-            ->groupBy('teacher_id');
-
-
-
-        }
-
-        // =========================
-        // รายวิชาที่ลงทะเบียน
-        // =========================
-        $subjects = $schedules
-            ->pluck('subject')
-            ->filter()
-            ->unique('id')
-            ->values();
-
-        // =========================
-        // ครูผู้สอน
-        // =========================
-        $teachers = $schedules
-            ->groupBy('teacher_id');
-
-        return view(
-            'student.dashboard',
-            compact(
-                'student',
-                'lessons',
-                'completedLessons',
-                'percent',
-                'currentEnrollment',
-                'schedules',
-                'subjects',
-                'teachers',
-                'timetable',
-                'subjects',
-                
-            
-            )
-        );
+        return view('student.dashboard', compact(
+            'lessons',
+            'completedLessons',
+            'percent'
+        ));
     }
 
     // =========================
@@ -160,14 +48,7 @@ class DashboardController extends Controller
     // =========================
     public function profile()
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (!$user) {
-            abort(403);
-        }
-
-        $user->load(
+        $user = auth()->user()->load(
             'student.enrollments',
             'student.school',
             'student.temple'
@@ -175,10 +56,7 @@ class DashboardController extends Controller
 
         $provinces = Province::all();
 
-        return view(
-            'student.profile',
-            compact('user', 'provinces')
-        );
+        return view('student.profile', compact('user', 'provinces'));
     }
 
     // =========================
@@ -186,15 +64,10 @@ class DashboardController extends Controller
     // =========================
     public function updateProfile(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if (!$user) {
-            abort(403);
-        }
-
         // =========================
-        // Validation
+        // ✅ VALIDATION
         // =========================
         $request->validate([
             'name' => 'required|string|max:255',
@@ -203,7 +76,6 @@ class DashboardController extends Controller
             'student_code' => 'nullable|string|max:50',
 
             'phone' => 'nullable|string|max:20',
-
             'address1' => 'nullable|string',
             'address2' => 'nullable|string',
 
@@ -218,7 +90,7 @@ class DashboardController extends Controller
         ]);
 
         // =========================
-        // Upload รูป
+        // 🖼️ Upload / Crop Image
         // =========================
         if ($request->filled('cropped_image')) {
 
@@ -226,20 +98,13 @@ class DashboardController extends Controller
                 Storage::disk('public')->delete($user->profile_image);
             }
 
-            $image = str_replace(
-                'data:image/jpeg;base64,',
-                '',
-                $request->cropped_image
-            );
-
+            $image = $request->cropped_image;
+            $image = str_replace('data:image/jpeg;base64,', '', $image);
             $image = str_replace(' ', '+', $image);
 
             $imageName = 'profiles/' . uniqid() . '.jpg';
 
-            Storage::disk('public')->put(
-                $imageName,
-                base64_decode($image)
-            );
+            Storage::disk('public')->put($imageName, base64_decode($image));
 
             $user->profile_image = $imageName;
 
@@ -249,13 +114,12 @@ class DashboardController extends Controller
                 Storage::disk('public')->delete($user->profile_image);
             }
 
-            $user->profile_image = $request
-                ->file('profile_image')
-                ->store('profiles', 'public');
+            $path = $request->file('profile_image')->store('profiles', 'public');
+            $user->profile_image = $path;
         }
 
         // =========================
-        // USERS
+        // 👤 USERS TABLE
         // =========================
         $user->name = $request->name;
         $user->email = $request->email;
@@ -268,6 +132,7 @@ class DashboardController extends Controller
         $user->district_id = $request->district_id;
         $user->subdistrict_id = $request->subdistrict_id;
 
+        // 🔐 password
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
@@ -275,19 +140,14 @@ class DashboardController extends Controller
         $user->save();
 
         // =========================
-        // STUDENTS
+        // 🎓 STUDENTS TABLE
         // =========================
         if ($user->student) {
-
             $user->student->update([
-                'student_code' => $request->student_code
-                    ?? $user->student->student_code,
+                'student_code' => $request->student_code ?? $user->student->student_code,
             ]);
         }
 
-        return back()->with(
-            'success',
-            'อัปเดตโปรไฟล์สำเร็จ 🎉'
-        );
+        return back()->with('success', 'อัปเดตโปรไฟล์สำเร็จ 🎉');
     }
 }
