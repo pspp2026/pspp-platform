@@ -3,55 +3,72 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Classroom;
-use App\Models\School;
 use App\Models\AcademicTerm;
+use App\Models\Classroom;
 use Illuminate\Http\Request;
 
 class ClassroomController extends Controller
 {
+    /**
+     * รายชื่อห้องเรียนของโรงเรียนที่ Admin กำลังดูแล
+     */
     public function index()
     {
-        $classrooms = Classroom::with('school')
+        $schoolId = auth()->user()->school_id;
+
+        $classrooms = Classroom::where('school_id', $schoolId)
             ->latest()
             ->paginate(20);
 
-        $currentTerm = AcademicTerm::where('is_active', 1)
-            ->first();
+        $currentTerm = AcademicTerm::where('is_active', 1)->first();
 
         return view(
             'admin.classrooms.index',
-            compact(
-                'classrooms',
-                'currentTerm'
-            )
+            compact('classrooms', 'currentTerm')
         );
     }
 
+    /**
+     * ฟอร์มเพิ่มห้องเรียน
+     */
     public function create()
     {
-        $schools = School::all();
-
-        return view('admin.classrooms.create', compact('schools'));
+        return view('admin.classrooms.create');
     }
 
-   public function store(Request $request)
+    /**
+     * บันทึกห้องเรียนใหม่
+     */
+    public function store(Request $request)
     {
-        $request->validate([
-            'school_id'     => 'required',
-            'level'         => 'required',
-            'room'          => 'required|integer|min:1',
-            'student_count' => 'nullable|integer'
+        $schoolId = auth()->user()->school_id;
+
+        $validated = $request->validate([
+            'level' => ['required', 'string', 'max:255'],
+            'room' => ['required', 'integer', 'min:1'],
+            'student_count' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $name = $request->level . '/' . $request->room;
+        $name = $validated['level'] . '/' . $validated['room'];
+
+        $alreadyExists = Classroom::where('school_id', $schoolId)
+            ->where('name', $name)
+            ->exists();
+
+        if ($alreadyExists) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'room' => 'มีห้องเรียน ' . $name . ' อยู่ในโรงเรียนนี้แล้ว',
+                ]);
+        }
 
         Classroom::create([
-            'school_id'     => $request->school_id,
-            'name'          => $name,
-            'level'         => $request->level,
-            'room'          => $request->room,
-            'student_count' => $request->student_count,
+            'school_id' => $schoolId,
+            'name' => $name,
+            'level' => $validated['level'],
+            'room' => $validated['room'],
+            'student_count' => $validated['student_count'] ?? 0,
         ]);
 
         return redirect()
@@ -59,34 +76,73 @@ class ClassroomController extends Controller
             ->with('success', 'เพิ่มห้องเรียนสำเร็จ');
     }
 
+    /**
+     * ฟอร์มแก้ไขห้องเรียน
+     */
     public function edit(Classroom $classroom)
     {
-        $schools = School::all();
+        $schoolId = auth()->user()->school_id;
 
-        return view('admin.classrooms.edit', compact(
-            'classroom',
-            'schools'
-        ));
+        abort_if($classroom->school_id != $schoolId, 403);
+
+        return view('admin.classrooms.edit', compact('classroom'));
     }
 
+    /**
+     * บันทึกการแก้ไขห้องเรียน
+     */
     public function update(Request $request, Classroom $classroom)
     {
-        $request->validate([
-            'school_id' => 'required',
-            'name' => 'required',
+        $schoolId = auth()->user()->school_id;
+
+        abort_if($classroom->school_id != $schoolId, 403);
+
+        $validated = $request->validate([
+            'level' => ['required', 'string', 'max:255'],
+            'room' => ['required', 'integer', 'min:1'],
+            'student_count' => ['nullable', 'integer', 'min:0'],
+            'status' => ['nullable', 'boolean'],
         ]);
 
-        $classroom->update($request->all());
+        $name = $validated['level'] . '/' . $validated['room'];
+
+        $alreadyExists = Classroom::where('school_id', $schoolId)
+            ->where('name', $name)
+            ->where('id', '!=', $classroom->id)
+            ->exists();
+
+        if ($alreadyExists) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'room' => 'มีห้องเรียน ' . $name . ' อยู่ในโรงเรียนนี้แล้ว',
+                ]);
+        }
+
+        $classroom->update([
+            'name' => $name,
+            'level' => $validated['level'],
+            'room' => $validated['room'],
+            'student_count' => $validated['student_count'] ?? 0,
+            'status' => $request->boolean('status', true),
+        ]);
 
         return redirect()
             ->route('admin.classrooms.index')
-            ->with('success', 'แก้ไขสำเร็จ');
+            ->with('success', 'แก้ไขห้องเรียนสำเร็จ');
     }
 
+    /**
+     * ลบห้องเรียน
+     */
     public function destroy(Classroom $classroom)
     {
+        $schoolId = auth()->user()->school_id;
+
+        abort_if($classroom->school_id != $schoolId, 403);
+
         $classroom->delete();
 
-        return back()->with('success', 'ลบสำเร็จ');
+        return back()->with('success', 'ลบห้องเรียนสำเร็จ');
     }
 }

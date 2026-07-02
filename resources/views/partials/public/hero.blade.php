@@ -62,9 +62,24 @@
                         <a href="{{ route('dashboard') }}"
                             class="px-6 py-3 rounded-lg bg-yellow-400 text-gray-900 font-bold hover:bg-yellow-300 transition">
 
-                            เข้าสู่ Dashboard
+                            📊 เข้าสู่ Dashboard
 
                         </a>
+
+                        <form method="POST"
+                            action="{{ route('logout') }}"
+                            class="inline">
+
+                            @csrf
+
+                            <button type="submit"
+                                    class="px-6 py-3 rounded-lg border border-red-300 bg-red-600 text-white font-semibold hover:bg-red-700 transition">
+
+                                🚪 ออกจากระบบ
+
+                            </button>
+
+                        </form>
 
                     @endguest
 

@@ -49,6 +49,21 @@
 
                 </a>
 
+                <form method="POST"
+                    action="{{ route('logout') }}"
+                    class="inline">
+
+                    @csrf
+
+                    <button type="submit"
+                            class="px-8 py-4 rounded-xl border border-red-300 bg-red-600 text-white font-bold shadow-lg hover:bg-red-700 transition">
+
+                        🚪 ออกจากระบบ
+
+                    </button>
+
+                </form>
+
             @endguest
 
         </div>

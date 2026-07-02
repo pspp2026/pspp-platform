@@ -8,9 +8,15 @@
     <aside class="w-64 bg-blue-900 text-white flex flex-col">
 
         <div class="p-5 border-b border-blue-800">
+
             <h2 class="text-xl font-bold">
                 👨‍🏫 TEACHER PANEL
             </h2>
+
+            <p class="mt-2 text-sm text-blue-200">
+                {{ auth()->user()->school?->school_name ?? 'ไม่พบข้อมูลโรงเรียน' }}
+            </p>
+
         </div>
 
         <nav class="flex-1 p-4 space-y-2 text-sm">

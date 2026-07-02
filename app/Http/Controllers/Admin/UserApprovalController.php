@@ -3,22 +3,25 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Teacher;
-use App\Models\Student;
-use App\Models\Staff;
 use App\Models\Director;
+use App\Models\Staff;
+use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserApprovalController extends Controller
 {
     /**
-     * แสดงรายชื่อผู้ใช้รออนุมัติ
+     * แสดงรายชื่อผู้ใช้รออนุมัติ เฉพาะโรงเรียนของ Admin ที่ Login
      */
     public function index()
     {
+        $schoolId = auth()->user()->school_id;
+
         $users = User::where('status', 'pending')
+            ->where('school_id', $schoolId)
             ->orderBy('created_at')
             ->get();
 
@@ -26,15 +29,19 @@ class UserApprovalController extends Controller
     }
 
     /**
-     * อนุมัติรายคน
+     * อนุมัติรายคน เฉพาะผู้ใช้ในโรงเรียนเดียวกัน
      */
     public function approve(Request $request, User $user)
     {
-        $request->validate([
-            'role' => 'required|string',
+        $schoolId = auth()->user()->school_id;
+
+        abort_if($user->school_id != $schoolId, 403);
+
+        $validated = $request->validate([
+            'role' => ['required', 'string', 'in:teacher,student,staff,director'],
         ]);
 
-        $this->approveUser($user, $request->role);
+        $this->approveUser($user, $validated['role']);
 
         return back()->with(
             'success',
@@ -43,28 +50,35 @@ class UserApprovalController extends Controller
     }
 
     /**
-     * อนุมัติหลายคน
+     * อนุมัติหลายคน เฉพาะผู้ใช้ในโรงเรียนเดียวกัน
      */
     public function approveBulk(Request $request)
     {
-        $request->validate([
-            'user_ids' => 'required|array',
-            'roles'    => 'required|array',
+        $schoolId = auth()->user()->school_id;
+
+        $validated = $request->validate([
+            'user_ids' => ['required', 'array'],
+            'user_ids.*' => ['integer'],
+            'roles' => ['required', 'array'],
         ]);
+
+        $users = User::whereIn('id', $validated['user_ids'])
+            ->where('school_id', $schoolId)
+            ->where('status', 'pending')
+            ->get()
+            ->keyBy('id');
 
         $count = 0;
 
-        foreach ($request->user_ids as $id) {
+        foreach ($validated['user_ids'] as $id) {
+            $user = $users->get($id);
+            $role = $validated['roles'][$id] ?? null;
 
-            $user = User::find($id);
-
-            if (!$user) {
+            if (!$user || !$role) {
                 continue;
             }
 
-            $role = $request->roles[$id] ?? null;
-
-            if (!$role) {
+            if (!in_array($role, ['teacher', 'student', 'staff', 'director'], true)) {
                 continue;
             }
 
@@ -80,10 +94,14 @@ class UserApprovalController extends Controller
     }
 
     /**
-     * Reject ผู้ใช้
+     * ปฏิเสธผู้ใช้ เฉพาะผู้ใช้ในโรงเรียนเดียวกัน
      */
     public function reject(User $user)
     {
+        $schoolId = auth()->user()->school_id;
+
+        abort_if($user->school_id != $schoolId, 403);
+
         $user->update([
             'status' => 'rejected',
         ]);
@@ -95,15 +113,13 @@ class UserApprovalController extends Controller
     }
 
     /**
-     * -----------------------------
-     * Logic กลางในการ Approve
-     * -----------------------------
+     * Logic กลางในการอนุมัติ
      */
     private function approveUser(User $user, string $role): void
     {
         $user->update([
-            'role'        => $role,
-            'status'      => 'approved',
+            'role' => $role,
+            'status' => 'approved',
             'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
@@ -119,7 +135,6 @@ class UserApprovalController extends Controller
     private function createProfile(User $user): void
     {
         switch ($user->role) {
-
             case 'teacher':
                 $this->createTeacherProfile($user);
                 break;
@@ -128,6 +143,13 @@ class UserApprovalController extends Controller
                 $this->createStudentProfile($user);
                 break;
 
+            case 'staff':
+                $this->createStaffProfile($user);
+                break;
+
+            case 'director':
+                $this->createDirectorProfile($user);
+                break;
         }
     }
 
@@ -137,66 +159,82 @@ class UserApprovalController extends Controller
     private function createTeacherProfile(User $user): void
     {
         Teacher::updateOrCreate(
-
             [
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ],
-
             [
-                'teacher_code' => 'T' . str_pad(
-                    $user->id,
-                    5,
-                    '0',
-                    STR_PAD_LEFT
-                ),
-
+                'teacher_code' => 'T' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
                 'first_name' => $user->name,
-
                 'last_name' => null,
-
                 'prefix' => null,
-
                 'position' => null,
-
                 'department' => null,
-
                 'subject' => null,
-
                 'school_id' => $user->school_id,
-
                 'status' => 'active',
             ]
         );
     }
-   
-     /**
-      * สร้าง
-      */
-     private function createStudentProfile(User $user)
+
+    /**
+     * สร้าง Student Profile
+     */
+    private function createStudentProfile(User $user): void
     {
         Student::updateOrCreate(
-
             [
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ],
-
             [
-                'student_code' => 'S' . str_pad(
-                    $user->id,
-                    5,
-                    '0',
-                    STR_PAD_LEFT
-                ),
-
+                'student_code' => 'S' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
                 'first_name' => $user->name,
-
                 'last_name' => null,
-
                 'prefix' => null,
-
                 'school_id' => $user->school_id,
+            ]
+        );
+    }
 
-                'status' => 'active',
+    /**
+     * สร้าง Staff Profile
+     *
+     * หมายเหตุ: หากตาราง staffs ของคุณมีชื่อคอลัมน์ต่างจากนี้
+     * ให้ส่ง DESCRIBE staffs มา แล้วค่อยปรับส่วนนี้
+     */
+    private function createStaffProfile(User $user): void
+    {
+        if (!class_exists(Staff::class)) {
+            return;
+        }
+
+        Staff::updateOrCreate(
+            [
+                'user_id' => $user->id,
+            ],
+            [
+                'school_id' => $user->school_id,
+            ]
+        );
+    }
+
+    /**
+     * สร้าง Director Profile
+     *
+     * หมายเหตุ: หากตาราง directors ของคุณมีชื่อคอลัมน์ต่างจากนี้
+     * ให้ส่ง DESCRIBE directors มา แล้วค่อยปรับส่วนนี้
+     */
+    private function createDirectorProfile(User $user): void
+    {
+        if (!class_exists(Director::class)) {
+            return;
+        }
+
+        Director::updateOrCreate(
+            [
+                'user_id' => $user->id,
+            ],
+            [
+                'school_id' => $user->school_id,
             ]
         );
     }

@@ -57,7 +57,8 @@ Route::prefix('admin')
     ->middleware([
         'auth',
         'approved',
-        'role:admin'
+        'role:admin',
+        'school.admin',
     ])
     ->group(function () {
 

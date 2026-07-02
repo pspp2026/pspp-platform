@@ -54,16 +54,45 @@
             width: 100%;
             padding: 10px;
             margin-top: 10px;
+            box-sizing: border-box;
         }
 
-        button {
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap input {
+            padding-right: 72px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-20%);
+            width: auto;
+            margin: 0;
+            padding: 5px 8px;
+            background: transparent;
+            color: #2563eb;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .toggle-password:hover {
+            background: transparent;
+            color: #1e40af;
+        }
+
+        button[type="submit"] {
             background: #2563eb;
             color: #fff;
             border: none;
             cursor: pointer;
         }
 
-        button:hover {
+        button[type="submit"]:hover {
             background: #1e40af;
         }
 
@@ -77,10 +106,8 @@
 
 <div class="card">
 
-    {{-- 🔙 HOME --}}
     <a href="/" class="home-btn">HOME</a>
 
-    {{-- 🔰 LOGO --}}
     <img src="{{ asset('images/logoBitpps.png') }}" class="logo">
 
     <h2>เข้าสู่ระบบ</h2>
@@ -98,7 +125,21 @@
         <input type="email" name="email" required>
 
         <label>รหัสผ่าน</label>
-        <input type="password" name="password" required>
+
+        <div class="password-wrap">
+            <input
+                id="password"
+                type="password"
+                name="password"
+                required>
+
+            <button
+                type="button"
+                class="toggle-password"
+                onclick="togglePassword('password', this)">
+                แสดง
+            </button>
+        </div>
 
         <button type="submit">
             เข้าสู่ระบบ
@@ -106,6 +147,20 @@
     </form>
 
 </div>
+
+<script>
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.textContent = 'ซ่อน';
+        } else {
+            input.type = 'password';
+            button.textContent = 'แสดง';
+        }
+    }
+</script>
 
 </body>
 </html>

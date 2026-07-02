@@ -13,16 +13,20 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            // 👇 admin เท่านั้น
-            'admin'    => \App\Http\Middleware\AdminOnly::class,
+            // admin เท่านั้น
+            'admin' => \App\Http\Middleware\AdminOnly::class,
 
-            // 👇 ต้อง approved ก่อน
+            // ต้อง approved ก่อน
             'approved' => \App\Http\Middleware\CheckApproved::class,
 
-            // 👇 ✅ เพิ่มตัวนี้ (แก้ error ของคุณ)
-            'role'     => \App\Http\Middleware\RoleMiddleware::class,
+            // ตรวจสอบ role เช่น superadmin, admin, teacher, student
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+
+            // Admin ของแต่ละโรงเรียน ต้องมี school_id
+            'school.admin' => \App\Http\Middleware\EnsureSchoolAdmin::class,
         ]);
     })
+    
 
     // ❗ ห้ามลบเด็ดขาด
     ->withExceptions(function (Exceptions $exceptions) {

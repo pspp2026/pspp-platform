@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class=""w-full">
+<div class="w-full">
 
    <div class="flex justify-between items-center mb-6">
 
