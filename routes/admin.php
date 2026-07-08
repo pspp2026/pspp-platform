@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\EnrollmentController;
 use App\Http\Controllers\Admin\StudentEnrollmentController;
 use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Admin\StudentController;
 
 use App\Http\Controllers\LearningUnitController as AdminLearningUnitController;
 
@@ -163,6 +164,19 @@ Route::prefix('admin')
             '/schedules/{classroom}',
             [ScheduleController::class, 'timetable']
         )->name('schedules.timetable');
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Student Registry Management
+        |--------------------------------------------------------------------------
+        */
+
+        Route::resource(
+            'students',
+            StudentController::class
+        )->except([
+            'show',
+        ]);
 
 /*
 |--------------------------------------------------------------------------
