@@ -8,51 +8,76 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-//โลโก้ จากไฟล์ /    public\images\logoBitpps.png
-
-// แสดงฟอร์ม login
+    /**
+     * แสดงหน้าเข้าสู่ระบบ
+     */
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    // ประมวลผล login
+    /**
+     * ประมวลผลการเข้าสู่ระบบ
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ]);
 
-        if (!Auth::attempt($credentials)) {
-            return back()->withErrors([
-                'email' => 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
-            ]);
+        if (! Auth::attempt($credentials)) {
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors([
+                    'email' => 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+                ]);
         }
 
         $request->session()->regenerate();
+
         $user = Auth::user();
 
-        // ❗ ยังไม่ผ่านอนุมัติ
+        /*
+        |--------------------------------------------------------------------------
+        | ตรวจสถานะการอนุมัติ
+        |--------------------------------------------------------------------------
+        */
         if ($user->status !== 'approved') {
-            return redirect()->route('pending');
+            Auth::logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route('pending')
+                ->with('error', 'บัญชีของคุณยังไม่ได้รับการอนุมัติ');
         }
 
-        // ✅ ผ่านอนุมัติแล้ว → redirect ตาม role
+        /*
+        |--------------------------------------------------------------------------
+        | ส่งผู้ใช้ไปยัง Dashboard ตามสิทธิ์
+        |--------------------------------------------------------------------------
+        */
         return match ($user->role) {
-            'admin'    => redirect()->route('dashboard'),
-            'teacher'  => redirect('/teacher/dashboard'),
-            'student'  => redirect('/student/dashboard'),
-            'staff'    => redirect('/staff/dashboard'),
-            'director' => redirect('/director/dashboard'),
-            default    => abort(403),
+            'superadmin' => redirect()->route('superadmin.dashboard'),
+            'admin' => redirect()->route('admin.dashboard'),
+            'teacher' => redirect()->route('teacher.dashboard'),
+            'student' => redirect()->route('student.dashboard'),
+            'staff' => redirect()->route('staff.dashboard'),
+            'director' => redirect()->route('director.dashboard'),
+
+            default => abort(403, 'ไม่พบสิทธิ์ผู้ใช้งาน'),
         };
     }
 
-    // logout
+    /**
+     * ออกจากระบบ
+     */
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
