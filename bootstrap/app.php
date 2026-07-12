@@ -19,9 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         |--------------------------------------------------------------------------
         */
 
-        $middleware->append(
-            \App\Http\Middleware\CheckPsppEvaluation::class
-        );
+        // ปิดชั่วคราว
+        // $middleware->append(
+        //     \App\Http\Middleware\CheckPsppEvaluation::class
+        // );
 
         /*
         |--------------------------------------------------------------------------
@@ -31,27 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
 
-            // Admin เท่านั้น
             'admin' => \App\Http\Middleware\AdminOnly::class,
-
-            // ต้อง approved ก่อน
             'approved' => \App\Http\Middleware\CheckApproved::class,
-
-            // ตรวจสอบ Role
             'role' => \App\Http\Middleware\RoleMiddleware::class,
-
-            // Admin ของแต่ละโรงเรียน
             'school.admin' => \App\Http\Middleware\EnsureSchoolAdmin::class,
 
         ]);
 
     })
-
-    /*
-    |--------------------------------------------------------------------------
-    | Exception Handler
-    |--------------------------------------------------------------------------
-    */
 
     ->withExceptions(function (Exceptions $exceptions) {
         //
