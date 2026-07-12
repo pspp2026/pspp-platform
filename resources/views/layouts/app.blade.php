@@ -1,59 +1,92 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
+
     <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>PSPP Admin</title>
 
-    {{-- Tailwind --}}
+    {{-- Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
 
-    {{-- 🔥 Cropper CSS --}}
+    {{-- Cropper CSS --}}
     <link href="https://unpkg.com/cropperjs/dist/cropper.min.css" rel="stylesheet"/>
 
-    {{-- 🔥 เปิดให้แต่ละหน้าเพิ่ม CSS --}}
+    {{-- CSS ของแต่ละหน้า --}}
     @stack('styles')
+
 </head>
 
 <body class="bg-gray-100">
 
-    <!-- Navbar -->
-<nav class="bg-purple-900 text-white px-6 py-4 flex justify-between items-center">
+    {{-- ========================================================= --}}
+    {{-- Survey Popup --}}
+    {{-- ========================================================= --}}
 
-    {{-- 🔵 ซ้าย --}}
-    <h2 class="text-xl font-bold">PSPP SYSTEM</h2>
+    @include('partials.survey-popup')
 
-    {{-- 🔴 ขวา --}}
-    <div class="flex items-center gap-3">
+    {{-- ========================================================= --}}
+    {{-- Navbar --}}
+    {{-- ========================================================= --}}
 
-        {{-- HOME --}}
-        <a href="{{ route('home') }}"
-           class="bg-white text-purple-800 px-3 py-1 rounded text-sm hover:bg-gray-200">
-            🏠 HOME
-        </a>
+    <nav class="bg-purple-900 text-white px-6 py-4 flex justify-between items-center">
 
-        {{-- Logout --}}
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">
-                Logout
-            </button>
-        </form>
+        {{-- Logo --}}
+        <h2 class="text-xl font-bold">
 
-    </div>
+            PSPP SYSTEM
 
-</nav>
+        </h2>
 
-    <!-- Content -->
+        {{-- Right Menu --}}
+        <div class="flex items-center gap-3">
+
+            <a href="{{ route('home') }}"
+               class="bg-white text-purple-800 px-3 py-1 rounded text-sm hover:bg-gray-200">
+
+                🏠 HOME
+
+            </a>
+
+            <form method="POST" action="{{ route('logout') }}">
+
+                @csrf
+
+                <button
+                    class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded">
+
+                    Logout
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </nav>
+
+    {{-- ========================================================= --}}
+    {{-- Main Content --}}
+    {{-- ========================================================= --}}
+
     <div class="p-6">
+
         @yield('content')
+
     </div>
 
-    {{-- 🔥 Cropper JS --}}
+    {{-- ========================================================= --}}
+    {{-- Cropper JS --}}
+    {{-- ========================================================= --}}
+
     <script src="https://unpkg.com/cropperjs"></script>
 
-    {{-- 🔥 เปิดให้แต่ละหน้าเพิ่ม JS --}}
+    {{-- JS ของแต่ละหน้า --}}
     @stack('scripts')
 
-    
 </body>
+
 </html>

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Survey\SurveyController;
+use App\Http\Controllers\SuperAdmin\Survey\SurveyController;
 
 Route::middleware(['auth'])
     ->prefix('survey')

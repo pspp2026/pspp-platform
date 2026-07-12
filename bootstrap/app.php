@@ -12,23 +12,47 @@ return Application::configure(basePath: dirname(__DIR__))
     )
 
     ->withMiddleware(function (Middleware $middleware) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Global Middleware
+        |--------------------------------------------------------------------------
+        */
+
+        $middleware->append(
+            \App\Http\Middleware\CheckPsppEvaluation::class
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Route Middleware Alias
+        |--------------------------------------------------------------------------
+        */
+
         $middleware->alias([
-            // admin เท่านั้น
+
+            // Admin เท่านั้น
             'admin' => \App\Http\Middleware\AdminOnly::class,
 
             // ต้อง approved ก่อน
             'approved' => \App\Http\Middleware\CheckApproved::class,
 
-            // ตรวจสอบ role เช่น superadmin, admin, teacher, student
+            // ตรวจสอบ Role
             'role' => \App\Http\Middleware\RoleMiddleware::class,
 
-            // Admin ของแต่ละโรงเรียน ต้องมี school_id
+            // Admin ของแต่ละโรงเรียน
             'school.admin' => \App\Http\Middleware\EnsureSchoolAdmin::class,
-        ]);
-    })
-    
 
-    // ❗ ห้ามลบเด็ดขาด
+        ]);
+
+    })
+
+    /*
+    |--------------------------------------------------------------------------
+    | Exception Handler
+    |--------------------------------------------------------------------------
+    */
+
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })

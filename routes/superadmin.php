@@ -1,9 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\SuperAdmin\DashboardController;
-// use App\Http\Controllers\SuperAdmin\SchoolController;
-// use App\Http\Controllers\SuperAdmin\UserController;
+use App\Http\Controllers\SuperAdmin\UserController;
+use App\Http\Controllers\SuperAdmin\Survey\SurveyController;
+
+/*
+|--------------------------------------------------------------------------
+| Super Admin Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::prefix('superadmin')
     ->name('superadmin.')
@@ -24,23 +31,37 @@ Route::prefix('superadmin')
 
         /*
         |--------------------------------------------------------------------------
-        | Schools
-        |--------------------------------------------------------------------------
-        */
-        // Route::resource('schools', SchoolController::class);
-
-        /*
-        |--------------------------------------------------------------------------
         | Users
         |--------------------------------------------------------------------------
         */
-        // Route::resource('users', UserController::class);
+
+        Route::get('/users/pending', [UserController::class, 'pending'])
+            ->name('users.pending');
+
+        Route::resource('users', UserController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Surveys
+        |--------------------------------------------------------------------------
+        */
+
+        Route::resource('surveys', SurveyController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Schools
+        |--------------------------------------------------------------------------
+        */
+
+        // Route::resource('schools', SchoolController::class);
 
         /*
         |--------------------------------------------------------------------------
         | Reports
         |--------------------------------------------------------------------------
         */
+
         // Route::resource('reports', ReportController::class);
 
         /*
@@ -48,6 +69,7 @@ Route::prefix('superadmin')
         | Settings
         |--------------------------------------------------------------------------
         */
+
         // Route::resource('settings', SettingController::class);
 
     });
