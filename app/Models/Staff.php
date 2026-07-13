@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\School;
+use App\Models\Temple;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Staff extends Model
@@ -44,5 +48,10 @@ class Staff extends Model
     public function getFullNameAttribute()
     {
         return trim("{$this->prefix}{$this->first_name} {$this->last_name}");
+    }
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
     }
 }

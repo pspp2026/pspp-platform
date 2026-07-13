@@ -1,11 +1,10 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
 
-<div class="flex min-h-screen bg-gray-100">
+<div class="flex min-h-screen">
 
-    @include('admin.partials.sidebar')
-
+    {{-- 🔵 SIDEBAR --}}
     <div class="flex-1">
 
         {{-- Header --}}
@@ -21,6 +20,106 @@
             </a>
 
         </div>
+
+        {{-- Search & Filter --}}
+<div class="bg-white rounded-xl shadow p-5 mb-6">
+
+    <form method="GET" action="{{ route('admin.enrollments.index') }}">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+
+            {{-- ค้นหา --}}
+            <div class="lg:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    🔍 ค้นหา
+                </label>
+
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="รหัสนักเรียน / ชื่อ"
+                    class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+            </div>
+
+            {{-- ห้องเรียน --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    🏫 ห้องเรียน
+                </label>
+
+                <select
+                    name="classroom_id"
+                    class="w-full rounded-lg border-gray-300">
+
+                    <option value="">ทั้งหมด</option>
+
+                    @foreach($classrooms as $room)
+                        <option
+                            value="{{ $room->id }}"
+                            {{ request('classroom_id') == $room->id ? 'selected' : '' }}>
+                            {{ $room->name }}
+                        </option>
+                    @endforeach
+
+                </select>
+            </div>
+
+            {{-- ปีการศึกษา --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    📅 ปีการศึกษา
+                </label>
+
+                <input
+                    type="number"
+                    name="academic_year"
+                    value="{{ request('academic_year') }}"
+                    class="w-full rounded-lg border-gray-300">
+            </div>
+
+            {{-- ภาคเรียน --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    📖 ภาคเรียน
+                </label>
+
+                <select
+                    name="semester"
+                    class="w-full rounded-lg border-gray-300">
+
+                    <option value="">ทั้งหมด</option>
+                    <option value="1" {{ request('semester') == 1 ? 'selected' : '' }}>1</option>
+                    <option value="2" {{ request('semester') == 2 ? 'selected' : '' }}>2</option>
+
+                </select>
+            </div>
+
+            {{-- ปุ่ม --}}
+            <div class="flex items-end gap-2">
+
+                <button
+                    type="submit"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2">
+
+                    🔍 ค้นหา
+
+                </button>
+
+                <a href="{{ route('admin.enrollments.index') }}"
+                   class="bg-gray-200 hover:bg-gray-300 rounded-lg px-4 py-2">
+
+                    ♻️
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
 
         <div class="p-6">
 

@@ -128,7 +128,7 @@
 
             <!-- ACTION -->
             <div class="mt-4">
-                <a href="{{ route('subjects.show', $sub->id) }}"
+                <a href="{{ route('admin.subjects.show', $sub->id) }}"
                 class="block text-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">
                     📖 ออกแบบรายวิชา
                 </a>

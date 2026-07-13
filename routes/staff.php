@@ -35,6 +35,7 @@ use App\Http\Controllers\Teacher\AttendanceController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboard;
 
 use App\Http\Controllers\Staff\DashboardController as StaffDashboard;
+use App\Http\Controllers\Staff\ProfileController as StaffProfile;
 
 use App\Http\Controllers\Director\DashboardController as DirectorDashboard;
 
@@ -45,13 +46,22 @@ use App\Http\Controllers\TempleImportController;
 use App\Http\Controllers\LessonProgressController;
 
 
-    /*
-    |---------------- Staff ----------------
+   /*
+    |--------------------------------------------------------------------------
+    | Staff
+    |--------------------------------------------------------------------------
     */
     Route::prefix('staff')
         ->name('staff.')
-        ->middleware('role:staff')
+        ->middleware(['auth', 'approved', 'role:staff'])
         ->group(function () {
 
-            Route::get('/dashboard', [StaffDashboard::class, 'index'])->name('dashboard');
+            Route::get('/dashboard', [StaffDashboard::class, 'index'])
+                ->name('dashboard');
+
+            Route::get('/profile', [StaffProfile::class, 'profile'])
+                ->name('profile');
+
+            Route::put('/profile', [StaffProfile::class, 'updateProfile'])
+                ->name('profile.update');
         });

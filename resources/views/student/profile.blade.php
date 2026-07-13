@@ -132,10 +132,15 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">รหัสนักเรียน</label>
-                                    <input value="{{ $student?->student_code ?? '-' }}"
-                                           class="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-100 text-slate-600"
-                                           readonly>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">
+                                        รหัสนักเรียน
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="external_code"
+                                        value="{{ old('external_code', $user->external_code ?? $student?->student_code) }}"
+                                        class="w-full border border-slate-300 p-2.5 rounded-lg focus:border-emerald-500 focus:ring-emerald-500">
                                 </div>
 
                                 <div>
@@ -157,6 +162,11 @@
                                     <input value="{{ $student?->school?->school_name ?? '-' }}"
                                            class="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-100 text-slate-600"
                                            readonly>
+
+                                           <input
+                                                    type="hidden"
+                                                    name="school_id"
+                                                    value="{{ $student?->school_id }}">
                                 </div>
 
                                 <div>

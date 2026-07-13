@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Teacher;
+namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class ProfileController extends Controller
 {
 public function profile()
     {
-        return view('teacher.profile', [
+        return view('staff.profile', [
             'schools' => School::all(),
             'provinces' => Province::orderBy('name_th', 'asc')->get(),
         ]);
@@ -37,12 +37,7 @@ public function profile()
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048|dimensions:min_width=100,min_height=100',
         ]);
       
-        // 🔥 หาโรงเรียน
-        $school = null;
-        if ($request->school_id) {
-            $school = School::find($request->school_code);
-        }
-
+        
         // =========================
         // 🖼️ upload profile image
         // =========================
@@ -153,16 +148,16 @@ public function profile()
         // ✅ save ครั้งเดียว
         // =========================
         $user->save();
-        $teacher = $user->teacher;
+        $staff = $user->staff;
 
-        if ($teacher) {
+        if ($staff) {
 
-            $teacher->school_id = $request->school_id;
+            $staff->school_id = $request->school_id;
 
-            // ถ้ายังใช้ teacher_code
-            $teacher->teacher_code = $user->external_code;
+            // ถ้ายังใช้ staff_code
+            $staff->staff_code = $user->external_code;
 
-            $teacher->save();
+            $staff->save();
         }
         return back()->with('success', 'บันทึกข้อมูลเรียบร้อย');
     }

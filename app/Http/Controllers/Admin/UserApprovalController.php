@@ -163,7 +163,7 @@ class UserApprovalController extends Controller
                 'user_id' => $user->id,
             ],
             [
-                'teacher_code' => 'T' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
+                'teacher_code' => $user->external_code,
                 'first_name' => $user->name,
                 'last_name' => null,
                 'prefix' => null,
@@ -186,7 +186,7 @@ class UserApprovalController extends Controller
                 'user_id' => $user->id,
             ],
             [
-                'student_code' => 'S' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
+                'student_code' => $user->external_code,
                 'first_name' => $user->name,
                 'last_name' => null,
                 'prefix' => null,
@@ -195,24 +195,26 @@ class UserApprovalController extends Controller
         );
     }
 
-    /**
-     * สร้าง Staff Profile
-     *
-     * หมายเหตุ: หากตาราง staffs ของคุณมีชื่อคอลัมน์ต่างจากนี้
-     * ให้ส่ง DESCRIBE staffs มา แล้วค่อยปรับส่วนนี้
-     */
+   /**
+ * สร้าง Staff Profile
+ */
     private function createStaffProfile(User $user): void
     {
-        if (!class_exists(Staff::class)) {
-            return;
-        }
-
         Staff::updateOrCreate(
             [
                 'user_id' => $user->id,
             ],
             [
-                'school_id' => $user->school_id,
+                'staff_code'  => $user->external_code,
+                'prefix'      => null,
+                'first_name'  => $user->name,
+                'last_name'   => null,
+                'position'    => null,
+                'department'  => null,
+                'school_id'   => $user->school_id,
+                'temple_id'   => null,
+                'is_monk'     => false,
+                'status'      => 'active',
             ]
         );
     }
@@ -234,6 +236,7 @@ class UserApprovalController extends Controller
                 'user_id' => $user->id,
             ],
             [
+                'director_code' => $user->external_code,
                 'school_id' => $user->school_id,
             ]
         );

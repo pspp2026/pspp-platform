@@ -12,7 +12,11 @@ class EnsureSchoolAdmin
     {
         $user = $request->user();
 
-        if (!$user || $user->role !== 'admin' || !$user->school_id) {
+        if (
+            !$user ||
+            !in_array($user->role, ['admin', 'director']) ||
+            !$user->school_id
+        ) {
             abort(403, 'คุณไม่มีสิทธิ์เข้าถึงส่วนจัดการโรงเรียน');
         }
 

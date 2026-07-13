@@ -68,11 +68,13 @@
 
                     <li>👑 Super Admin</li>
 
-                    <li>🏫 School Admin</li>
+                    <li>👨‍💻 School Admin</li>
 
                     <li>👨‍🏫 Teacher</li>
 
                     <li>👨‍🎓 Student</li>
+
+                    <li>👨‍💼 Staff</li>
 
                 </ul>
 
@@ -108,7 +110,7 @@
             </div>
 
         </div>
-        
+
         {{-- =========================================================
         Website Statistics
         ========================================================= --}}

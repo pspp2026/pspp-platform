@@ -11,45 +11,70 @@ use App\Models\School;
 use App\Models\Classroom;
 use App\Models\AcademicTerm;
 
+
 class EnrollmentController extends Controller
 {
     /**
      * แสดงรายการการลงทะเบียนเรียน
      */
-    public function index()
+    public function index(Request $request)
     {
-        
-    // ทดสอบ Policy
         $this->authorize('viewAny', Enrollment::class);
 
-        $enrollments = Enrollment::with([
+        $query = Enrollment::with([
             'student.user',
             'school',
             'classroom',
             'academicTerm'
-        ])
-        ->latest()
-        ->paginate(20);
+        ]);
 
-        return view(
-            'admin.enrollments.index',
-            compact('enrollments')
-        );
-    
+        // ค้นหา
+        if ($request->filled('search')) {
 
-        $enrollments = Enrollment::with([
-            'student.user',
-            'school',
-            'classroom',
-            'academicTerm'
-        ])
-        ->latest()
-        ->paginate(20);
+            $search = $request->search;
 
-        return view(
-            'admin.enrollments.index',
-            compact('enrollments')
-        );
+            $query->whereHas('student', function ($q) use ($search) {
+
+                $q->where('student_code', 'like', "%{$search}%")
+                ->orWhere('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%");
+
+            });
+
+        }
+
+        // ห้องเรียน
+        if ($request->filled('classroom_id')) {
+
+            $query->where('classroom_id', $request->classroom_id);
+
+        }
+
+        // ปีการศึกษา
+        if ($request->filled('academic_year')) {
+
+            $query->where('academic_year', $request->academic_year);
+
+        }
+
+        // ภาคเรียน
+        if ($request->filled('semester')) {
+
+            $query->where('semester', $request->semester);
+
+        }
+
+        $enrollments = $query
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $classrooms = Classroom::orderBy('name')->get();
+
+        return view('admin.enrollments.index', compact(
+            'enrollments',
+            'classrooms'
+        ));
     }
 
     /**

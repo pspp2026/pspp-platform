@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Province;
 use App\Models\User;
+
+use App\Services\UserCodeService;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -83,7 +87,7 @@ class DashboardController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
 
-            'student_code' => ['nullable', 'string', 'max:50'],
+            'external_code' => ['nullable', 'string', 'max:50'],
 
             'phone' => ['nullable', 'string', 'max:20'],
             'address1' => ['nullable', 'string'],
@@ -234,6 +238,29 @@ class DashboardController extends Controller
         */
         $user->name = $validated['name'];
         $user->email = $validated['email'];
+
+        $user->external_code = $validated['external_code'] ?? null;
+
+        // ใช้ school_id จากตาราง students
+            if ($student && $student->school_id) {
+                $user->school_id = $student->school_id;
+            }
+
+        $user->load('school');
+
+        
+        $user->user_code = UserCodeService::generate($user);
+
+        
+
+        if (! $user->user_code) {
+            return back()
+                ->withErrors([
+                    'external_code' => 'ไม่สามารถสร้าง User Code ได้'
+                ])
+                ->withInput();
+        }
+        
         $user->phone = $validated['phone'] ?? null;
 
         $user->address1 = $validated['address1'] ?? null;
@@ -257,7 +284,7 @@ class DashboardController extends Controller
         */
         if ($student && ! empty($validated['student_code'])) {
             $student->update([
-                'student_code' => $validated['student_code'],
+                'student_code' => $validated['external_code'],
             ]);
         }
 

@@ -51,9 +51,15 @@
 
             <div class="flex items-center gap-3">
 
+                {{-- 👤 โปรไฟล์ --}}
+                <a href="{{ route('staff.profile') }}"
+                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+                    👤 โปรไฟล์
+                </a>
+
                 {{-- 🔙 กลับหน้าแรก --}}
                 <a href="/"
-                   class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 text-sm">
+                class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 text-sm">
                     ⬅ กลับหน้าแรก
                 </a>
 
