@@ -33,7 +33,7 @@
                 </div>
 
             </div>
-
+         
             {{-- Modules --}}
             <div>
 
@@ -106,6 +106,58 @@
                 </ul>
 
             </div>
+
+        </div>
+        
+        {{-- =========================================================
+        Website Statistics
+        ========================================================= --}}
+
+        <div class="border-t border-slate-700 mt-10 pt-8">
+
+            <h3 class="font-bold text-xl text-white mb-5">
+                🌐 สถิติการใช้งานเว็บไซต์
+            </h3>
+
+            <ul class="space-y-3 text-gray-300">
+
+                <li class="flex items-center gap-2">
+
+                    <span>🌍</span>
+
+                    <span>ผู้เข้าชมทั้งหมด</span>
+
+                    <span class="font-bold text-cyan-300 text-sm">
+                        {{ number_format($statistics['total_visitors']) }}
+                    </span>
+
+                </li>
+
+                <li class="flex items-center gap-2">
+
+                    <span>📅</span>
+
+                    <span>ผู้เข้าชมวันนี้</span>
+
+                    <span class="font-bold text-green-300 text-sm">
+                        {{ number_format($statistics['today_visitors']) }}
+                    </span>
+
+                </li>
+
+                <li class="flex items-center gap-2">
+
+                    <span>🟢</span>
+
+                    <span>ออนไลน์ขณะนี้</span>
+
+                    <span class="font-bold text-yellow-300 text-sm">
+                        {{ number_format($statistics['online_users']) }}
+                    </span>
+
+                </li>
+
+            </ul>
 
         </div>
 

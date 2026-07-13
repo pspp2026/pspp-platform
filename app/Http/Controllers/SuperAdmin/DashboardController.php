@@ -34,6 +34,9 @@ class DashboardController extends Controller
             'systemStatus'     => $this->dashboardService->getSystemStatus(),
             'quickActions'     => $this->dashboardService->getQuickActions(),
             'notifications'    => $this->dashboardService->getNotifications(),
+            'evaluationSummary' => $this->dashboardService->getEvaluationSummary(),
+            'evaluationMatrix' => $this->dashboardService->getEvaluationMatrix(),
         ]);
     }
+   
 }

@@ -196,14 +196,69 @@ class SurveyController extends Controller
 
         $evaluation = new PsppEvaluation();
 
+       // =====================================================
         // ข้อมูลผู้ตอบ
+        // =====================================================
+
         $evaluation->user_id = $user->id;
 
-        $evaluation->school_id = $user->school_id;
-
-        $evaluation->school_name = optional($user->school)->name;
-
         $evaluation->role = $user->role;
+
+        /*
+        |--------------------------------------------------------------------------
+        | กำหนดโรงเรียนของผู้ตอบ
+        |--------------------------------------------------------------------------
+        */
+
+        $evaluation->school_id = null;
+        $evaluation->school_name = null;
+
+        switch ($user->role) {
+
+            case 'student':
+
+                if ($user->student) {
+
+                    $evaluation->school_id = $user->student->school_id;
+
+                    $evaluation->school_name = optional(
+                        $user->student->school
+                    )->school_name;
+
+                }
+
+                break;
+
+            case 'teacher':
+
+                if ($user->teacher) {
+
+                    $evaluation->school_id = $user->teacher->school_id;
+
+                    $evaluation->school_name = optional(
+                        $user->teacher->school
+                    )->school_name;
+
+                }
+
+                break;
+
+            default:
+
+                // Director / Staff / Admin
+                if (!empty($user->school_id)) {
+
+                    $evaluation->school_id = $user->school_id;
+
+                    $evaluation->school_name = optional(
+                        $user->school
+                    )->school_name;
+
+                }
+
+                break;
+
+        }
 
         // กรณีนักเรียน
         $evaluation->class_level = null;

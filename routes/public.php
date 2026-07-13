@@ -12,6 +12,7 @@ use App\Models\School;
 use App\Models\Province;
 
 // Controllers
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 
@@ -95,10 +96,8 @@ Route::get('/schools/filter', function (Request $request) {
 });
 
 // หน้าแรก
-Route::get('/', function () {
-    $provinces = Province::orderBy('name_th', 'asc')->get();
-    return view('home', compact('provinces'));
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])
+    ->name('home');
 
 //สถิติ
 

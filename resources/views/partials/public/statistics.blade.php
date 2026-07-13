@@ -4,7 +4,6 @@ Statistics Section
 
 <section id="statistics" class="bg-white py-16">
 
-
 <div class="max-w-7xl mx-auto px-6">
 
     <div class="text-center mb-12">
@@ -15,7 +14,7 @@ Statistics Section
         </span>
 
         <h2 class="mt-4 text-4xl font-bold text-gray-800">
-            PSPP Platform Statistics
+            📊 สถิติระบบ
         </h2>
 
         <p class="mt-4 max-w-3xl mx-auto text-gray-600">
@@ -25,94 +24,92 @@ Statistics Section
 
     </div>
 
+    {{-- =========================================================
+        Statistics Cards
+    ========================================================== --}}
+
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
 
-        {{-- Schools --}}
-        <div class="bg-gradient-to-br from-blue-600 to-blue-700 text-blue rounded-2xl p-6 text-center shadow-lg">
+        {{-- โรงเรียน --}}
+        <div class="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl p-6 text-center shadow-lg">
 
-            <div class="text-5xl mb-3">
-                🏫
-            </div>
+            <div class="text-5xl mb-3">🏫</div>
 
             <div class="text-4xl font-bold">
-                7
+                {{ number_format($statistics['schools']) }}
             </div>
 
             <div class="mt-2 text-blue-100">
-                โรงเรียน
+                โรงเรียนในระบบ
             </div>
 
         </div>
 
-        {{-- Teachers --}}
-        <div class="bg-gradient-to-br from-green-600 to-emerald-600 text-blue rounded-2xl p-6 text-center shadow-lg">
+        {{-- ผู้บริหาร --}}
+        <div class="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl p-6 text-center shadow-lg">
 
-            <div class="text-5xl mb-3">
-                👨‍🏫
-            </div>
+            <div class="text-5xl mb-3">👨‍💼</div>
 
             <div class="text-4xl font-bold">
-                150
+                {{ number_format($statistics['directors']) }}
+            </div>
+
+            <div class="mt-2 text-indigo-100">
+                ผู้บริหารโรงเรียน
+            </div>
+
+        </div>
+
+        {{-- ครู --}}
+        <div class="bg-gradient-to-br from-green-600 to-emerald-600 text-white rounded-2xl p-6 text-center shadow-lg">
+
+            <div class="text-5xl mb-3">👨‍🏫</div>
+
+            <div class="text-4xl font-bold">
+                {{ number_format($statistics['teachers']) }}
             </div>
 
             <div class="mt-2 text-green-100">
-                ครู
+                ครูผู้สอน
             </div>
 
         </div>
 
-        {{-- Students --}}
-        <div class="bg-gradient-to-br from-yellow-500 to-orange-500 text-blue rounded-2xl p-6 text-center shadow-lg">
+        {{-- นักเรียน --}}
+        <div class="bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-2xl p-6 text-center shadow-lg">
 
-            <div class="text-5xl mb-3">
-                👨‍🎓
+            <div class="text-5xl mb-3">👨‍🎓</div>
+
+            <div class="text-4xl font-bold">
+                {{ number_format($statistics['students']) }}
             </div>
 
-            <div class="text-4xl font-extrabold text-blue">
-                900
-            </div>
-
-            <div class="mt-2 text-white/90 font-medium">
+            <div class="mt-2 text-yellow-100">
                 นักเรียน
             </div>
 
         </div>
 
-        {{-- Classrooms --}}
-        <div class="bg-gradient-to-br from-purple-600 to-indigo-600 text-blue rounded-2xl p-6 text-center shadow-lg">
+        {{-- เจ้าหน้าที่ --}}
+        <div class="bg-gradient-to-br from-pink-600 to-red-600 text-white rounded-2xl p-6 text-center shadow-lg">
 
-            <div class="text-5xl mb-3">
-                🏫
-            </div>
+            <div class="text-5xl mb-3">👥</div>
 
             <div class="text-4xl font-bold">
-                56
+                {{ number_format($statistics['staffs']) }}
             </div>
 
-            <div class="mt-2 text-purple-100">
-                ห้องเรียน
-            </div>
-
-        </div>
-
-        {{-- Subjects --}}
-        <div class="bg-gradient-to-br from-red-500 to-pink-600 text-blue rounded-2xl p-6 text-center shadow-lg">
-
-            <div class="text-5xl mb-3">
-                📚
-            </div>
-
-            <div class="text-4xl font-bold">
-                148
-            </div>
-
-            <div class="mt-2 text-red-100">
-                รายวิชา
+            <div class="mt-2 text-pink-100">
+                เจ้าหน้าที่
             </div>
 
         </div>
 
     </div>
+
+    {{-- =========================================================
+        Platform Info
+    ========================================================== --}}
 
     <div class="mt-12 rounded-2xl bg-slate-900 text-white p-8">
 
@@ -159,6 +156,5 @@ Statistics Section
     </div>
 
 </div>
-
 
 </section>

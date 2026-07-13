@@ -24,9 +24,15 @@
 
                 {{-- Statistics --}}
                 @include('components.dashboard.statistics')
-
+              
                 {{-- Charts --}}
                 @include('components.dashboard.charts')
+
+                {{-- Evaluation Matrix --}}
+                @include('components.dashboard.evaluation-matrix')
+
+                {{-- Evaluation Summary --}}
+                @include('components.dashboard.evaluation-summary')
 
                 {{-- Quick Actions + Activities --}}
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
