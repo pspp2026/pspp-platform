@@ -83,33 +83,10 @@
                 </div>
 
             </div>
-
-            {{-- Home --}}
-            <a href="{{ route('home') }}"
-               class="px-3 py-2 rounded-lg
-                      bg-gray-100
-                      hover:bg-gray-200
-                      text-sm">
-
-                🏠 Home
-
-            </a>
-
-            {{-- Logout --}}
-            <form method="POST"
-                  action="{{ route('logout') }}">
-
+           
                 @csrf
 
-                <button
-                    class="px-3 py-2 rounded-lg
-                           bg-red-600
-                           text-white
-                           hover:bg-red-700">
-
-                    Logout
-
-                </button>
+            
 
             </form>
 

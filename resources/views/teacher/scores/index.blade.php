@@ -5,14 +5,22 @@
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
+
         <div>
             <h1 class="text-2xl font-bold text-gray-800">
                 📝 บันทึกคะแนน
             </h1>
+
             <p class="text-gray-500 mt-1">
                 เลือกรายวิชาที่ต้องการบันทึกคะแนน
             </p>
         </div>
+
+        <a href="{{ route('teacher.dashboard') }}"
+           class="px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700">
+            ← กลับ
+        </a>
+
     </div>
 
     {{-- Success --}}
@@ -28,6 +36,7 @@
         <table class="min-w-full divide-y divide-gray-200">
 
             <thead class="bg-gray-100">
+
                 <tr>
 
                     <th class="px-4 py-3 text-left text-sm font-semibold">
@@ -35,11 +44,11 @@
                     </th>
 
                     <th class="px-4 py-3 text-left text-sm font-semibold">
-                        ห้อง
+                        ห้องเรียน
                     </th>
 
                     <th class="px-4 py-3 text-left text-sm font-semibold">
-                        ภาคเรียน
+                        ปีการศึกษา
                     </th>
 
                     <th class="px-4 py-3 text-center text-sm font-semibold">
@@ -51,6 +60,7 @@
                     </th>
 
                 </tr>
+
             </thead>
 
             <tbody class="divide-y divide-gray-200 bg-white">
@@ -61,6 +71,7 @@
 
                         {{-- วิชา --}}
                         <td class="px-4 py-3">
+
                             <div class="font-semibold text-gray-800">
                                 {{ $schedule->subject->subject_name ?? '-' }}
                             </div>
@@ -68,11 +79,14 @@
                             <div class="text-xs text-gray-500">
                                 {{ $schedule->subject->subject_code ?? '' }}
                             </div>
+
                         </td>
 
                         {{-- ห้อง --}}
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 font-medium">
+
                             {{ $schedule->classroom->name ?? '-' }}
+
                         </td>
 
                         {{-- ภาคเรียน --}}
@@ -80,9 +94,13 @@
 
                             @if($schedule->academicTerm)
 
-                                {{ $schedule->academicTerm->semester }}
-                                /
-                                {{ $schedule->academicTerm->academic_year }}
+                                <div>
+                                    ปี {{ $schedule->academicTerm->academic_year }}
+                                </div>
+
+                                <div class="text-sm text-gray-500">
+                                    ภาคเรียน {{ $schedule->academicTerm->semester }}
+                                </div>
 
                             @else
 
@@ -95,12 +113,12 @@
                         {{-- วัน / คาบ --}}
                         <td class="px-4 py-3 text-center">
 
-                            <div>
+                            <span class="inline-flex px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
                                 {{ $schedule->day_of_week }}
-                            </div>
+                            </span>
 
-                            <div class="text-xs text-gray-500">
-                                {{ $schedule->period->name ?? '' }}
+                            <div class="mt-2 text-sm text-gray-600">
+                                {{ $schedule->period->name ?? '-' }}
                             </div>
 
                         </td>
@@ -109,9 +127,9 @@
                         <td class="px-4 py-3 text-center">
 
                             <a href="{{ route('teacher.scores.show', $schedule) }}"
-                               class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
+                               class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition">
 
-                                📝 บันทึกคะแนน
+                                📋 บันทึกคะแนน
 
                             </a>
 

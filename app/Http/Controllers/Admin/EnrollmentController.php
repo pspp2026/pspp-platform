@@ -21,12 +21,17 @@ class EnrollmentController extends Controller
     {
         $this->authorize('viewAny', Enrollment::class);
 
+        $user = auth()->user();
+
         $query = Enrollment::with([
             'student.user',
             'school',
             'classroom',
-            'academicTerm'
-        ]);
+            'academicTerm',
+        ])
+        ->when($user->role !== 'superadmin', function ($query) use ($user) {
+            $query->where('school_id', $user->school_id);
+        });
 
         // ค้นหา
         if ($request->filled('search')) {
@@ -65,7 +70,10 @@ class EnrollmentController extends Controller
         }
 
         $enrollments = $query
-            ->latest()
+            ->orderBy(
+                Student::select('student_code')
+                    ->whereColumn('students.id', 'enrollments.student_id')
+            )
             ->paginate(20)
             ->withQueryString();
 
@@ -87,11 +95,21 @@ class EnrollmentController extends Controller
                 ->orderBy('student_code')
                 ->get(),
 
-            'schools' => School::orderBy('school_name')->get(),
+            'schools' => School::query()
+            ->when(auth()->user()->role !== 'superadmin', function ($query) {
+                $query->where('id', auth()->user()->school_id);
+            })
+            ->orderBy('school_name')
+            ->get(),
 
-            'classrooms' => Classroom::orderBy('name')->get(),
+            'classrooms' => Classroom::query()
+                ->when(auth()->user()->role !== 'superadmin', function ($query) {
+                    $query->where('school_id', auth()->user()->school_id);
+                })
+                ->orderBy('name')
+                ->get(),
 
-            'terms' => AcademicTerm::orderByDesc('academic_year')
+            'terms' => AcademicTerm::where('is_active', 1)
                 ->orderBy('semester')
                 ->get(),
         ]);
@@ -136,27 +154,49 @@ class EnrollmentController extends Controller
         ]);
 
         return redirect()
-            ->route('enrollments.index')
+            ->route('admin.enrollments.index')
             ->with('success', 'ลงทะเบียนเรียนเรียบร้อย');
     }
 
     /**
      * ฟอร์มแก้ไข
      */
-    public function edit(Enrollment $enrollment)
+   public function edit(Enrollment $enrollment)
     {
+        $user = auth()->user();
+
+        if (
+            $user->role !== 'superadmin' &&
+            $enrollment->school_id != $user->school_id
+        ) {
+            abort(403);
+        }
+
         return view('admin.enrollments.edit', [
             'enrollment' => $enrollment,
 
             'students' => Student::with('user')
+               ->when(auth()->user()->role !== 'superadmin', function ($query) {
+        $query->where('school_id', auth()->user()->school_id);
+    })
                 ->orderBy('student_code')
                 ->get(),
 
-            'schools' => School::orderBy('school_name')->get(),
+            'schools' => School::query()
+                ->when($user->role !== 'superadmin', function ($query) use ($user) {
+                    $query->where('id', $user->school_id);
+                })
+                ->orderBy('school_name')
+                ->get(),
 
-            'classrooms' => Classroom::orderBy('name')->get(),
+            'classrooms' => Classroom::query()
+                ->when($user->role !== 'superadmin', function ($query) use ($user) {
+                    $query->where('school_id', $user->school_id);
+                })
+                ->orderBy('name')
+                ->get(),
 
-            'terms' => AcademicTerm::orderByDesc('academic_year')
+            'terms' => AcademicTerm::where('is_active', 1)
                 ->orderBy('semester')
                 ->get(),
         ]);
@@ -201,7 +241,7 @@ class EnrollmentController extends Controller
         ]);
 
         return redirect()
-            ->route('enrollments.index')
+            ->route('admin.enrollments.index')
             ->with('success', 'แก้ไขข้อมูลเรียบร้อย');
     }
 

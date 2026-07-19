@@ -4,46 +4,9 @@
 
 <div class="flex min-h-screen">
 
-    {{-- 🔵 SIDEBAR --}}
-    <aside class="w-64 bg-indigo-900 text-white p-5 space-y-4">
+   @include('student.sidebar')
 
-        <h2 class="text-xl font-bold mb-4">🎓 STUDENT PANEL</h2>
-
-        <nav class="space-y-2 text-sm">
-
-            <a href="{{ route('student.dashboard') }}"
-               class="block px-3 py-2 rounded bg-indigo-700">
-                🏠 Dashboard
-            </a>
-
-            <a href="#lessons"
-               class="block px-3 py-2 rounded hover:bg-indigo-700">
-                📚 บทเรียน
-            </a>
-
-            <a href="#assignments"
-               class="block px-3 py-2 rounded hover:bg-indigo-700">
-                📝 การบ้าน
-            </a>
-
-            <a href="#scores"
-               class="block px-3 py-2 rounded hover:bg-indigo-700">
-                📊 คะแนน
-            </a>
-
-            <a href="#schedule"
-               class="block px-3 py-2 rounded hover:bg-indigo-700">
-                📅 ตารางเรียน
-            </a>
-
-            <a href="{{ route('student.profile') }}"
-           class="block px-3 py-2 rounded hover:bg-indigo-700">
-            👤 โปรไฟล์
-             </a>
-
-        </nav>
-
-    </aside>
+    {{-- ================= CONTENT ================= --}}
 
 
     {{-- 🟡 MAIN --}}

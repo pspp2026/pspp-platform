@@ -214,11 +214,6 @@ Route::resource(
 */
 Route::middleware(['auth', 'approved'])->group(function () {
 
-    // Schools
-    Route::middleware('role:admin,staff')->group(function () {
-        Route::resource('schools', SchoolController::class)
-            ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-    });
     
     /*  Subjects*/ 
 

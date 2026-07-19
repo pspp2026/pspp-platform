@@ -8,6 +8,24 @@ use App\Models\Province;
 
 class SchoolController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        $provinces = Province::orderBy('name_th')->get();
+
+        $schools = School::with(['province', 'district', 'subdistrict'])
+            ->when($request->province_id, function ($query) use ($request) {
+                $query->where('province_id', $request->province_id);
+            })
+            ->when($request->zone_code, function ($query) use ($request) {
+                $query->where('zone_code', $request->zone_code);
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('schools.index', compact('schools', 'provinces'));
+    }
     /**
      * 🔥 หน้าเดียว: ฟอร์ม + ตาราง
      */
@@ -98,17 +116,17 @@ class SchoolController extends Controller
             'email'           => $request->email,
         ]);
 
-        return redirect()->route('schools.create')
-    ->with('success', 'ข้อแก้ไขแล้ว');
+        return redirect()->route('superadmin.schools.create')
+    ->with('success', 'แก้ไขโรงเรียนเรียบร้อยแล้ว');
     }
 
     /**
-     * ลบ
+     * ลบโรงเรียน
      */
     public function destroy($id)
     {
         School::findOrFail($id)->delete();
 
-        return redirect()->back()->with('success', 'ลบข้อมูลเรียบร้อยแล้ว');
+        return redirect()->back()->with('success', 'ลบโรงเรียนเรียบร้อยแล้ว');
     }
 }

@@ -12,15 +12,23 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $students = Student::query()
-            ->with([
-                'school:id,school_name',
-                'classroom:id,name',
-                'user:id,name,email',
-            ])
-            ->when($request->filled('school_id'), function ($query) use ($request) {
-                $query->where('school_id', $request->school_id);
-            })
+        ->when($user->role !== 'superadmin', function ($query) use ($user) {
+            $query->where('school_id', $user->school_id);
+                })
+                ->with([
+                    'school:id,school_name',
+                    'classroom:id,name',
+                    'user:id,name,email',
+                ])
+                
+            ->when(
+                $user->role === 'superadmin' && $request->filled('school_id'),
+                function ($query) use ($request) {
+                    $query->where('school_id', $request->school_id);
+                })
+          
             ->when($request->filled('classroom_id'), function ($query) use ($request) {
                 $query->where('classroom_id', $request->classroom_id);
             })
@@ -40,15 +48,20 @@ class StudentController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $schools = School::query()
-            ->select('id', 'school_name')
-            ->orderBy('school_name')
-            ->get();
+       $schools = School::query()
+        ->select('id', 'school_name')
+        ->when($user->role !== 'superadmin', function ($query) use ($user) {
+            $query->where('id', $user->school_id);
+        })
+        ->orderBy('school_name')
+        ->get();
 
         $classrooms = Classroom::query()
-            ->select('id', 'school_id', 'name')
-            ->orderBy('name')
-            ->get();
+        ->when($user->role !== 'superadmin', function ($query) use ($user) {
+            $query->where('school_id', $user->school_id);
+        })
+        ->orderBy('name')
+        ->get();
 
         return view('admin.students.index', compact(
             'students',
@@ -59,15 +72,24 @@ class StudentController extends Controller
 
     public function create()
     {
-        $schools = School::query()
-            ->select('id', 'school_name')
-            ->orderBy('school_name')
-            ->get();
+        
+    $user = auth()->user();
 
-        $classrooms = Classroom::query()
-            ->select('id', 'school_id', 'name')
-            ->orderBy('name')
-            ->get();
+    $schools = School::query()
+        ->select('id', 'school_name')
+        ->when($user->role !== 'superadmin', function ($query) use ($user) {
+            $query->where('id', $user->school_id);
+        })
+        ->orderBy('school_name')
+        ->get();
+
+    $classrooms = Classroom::query()
+        ->select('id', 'school_id', 'name')
+        ->when($user->role !== 'superadmin', function ($query) use ($user) {
+            $query->where('school_id', $user->school_id);
+        })
+        ->orderBy('name')
+        ->get();
 
         return view('admin.students.create', compact(
             'schools',
@@ -77,7 +99,13 @@ class StudentController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+
         $data = $this->validateStudent($request);
+
+        if ($user->role !== 'superadmin') {
+            $data['school_id'] = $user->school_id;
+        }
 
         $data['user_id'] = null;
         $data['temple_id'] = null;
@@ -91,13 +119,24 @@ class StudentController extends Controller
 
     public function edit(Student $student)
     {
+        $user = auth()->user();
+
+        if ($user->role !== 'superadmin' && $student->school_id != $user->school_id) {
+            abort(403);
+        }        
         $schools = School::query()
             ->select('id', 'school_name')
+            ->when($user->role !== 'superadmin', function ($query) use ($user) {
+                $query->where('id', $user->school_id);
+            })
             ->orderBy('school_name')
             ->get();
 
         $classrooms = Classroom::query()
             ->select('id', 'school_id', 'name')
+            ->when($user->role !== 'superadmin', function ($query) use ($user) {
+                $query->where('school_id', $user->school_id);
+            })
             ->orderBy('name')
             ->get();
 
@@ -110,7 +149,15 @@ class StudentController extends Controller
 
     public function update(Request $request, Student $student)
     {
+        $user = auth()->user();
+        if ($user->role !== 'superadmin' && $student->school_id != $user->school_id) {
+            abort(403);
+        }
+
         $data = $this->validateStudent($request, $student);
+        if ($user->role !== 'superadmin') {
+            $data['school_id'] = $user->school_id;
+        }
 
         $data['temple_id'] = null;
 
@@ -123,6 +170,11 @@ class StudentController extends Controller
 
     public function destroy(Student $student)
     {
+        $user = auth()->user();
+        if ($user->role !== 'superadmin' && $student->school_id != $user->school_id) {
+            abort(403);
+        }
+
         if ($student->user_id) {
             return back()->with(
                 'error',

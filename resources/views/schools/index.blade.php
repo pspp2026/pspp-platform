@@ -14,7 +14,7 @@
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">📋 รายชื่อโรงเรียน</h2>
 
-        <a href="{{ route('schools.create') }}"
+        <a href="{{ route('superadmin.schools.create') }}"
            class="bg-green-500 text-white px-4 py-2 rounded-lg">
            ➕ เพิ่มโรงเรียน
         </a>
@@ -103,12 +103,12 @@
                     <!-- จัดการ -->
                     <td class="p-2 border text-center space-x-2">
 
-                        <a href="{{ route('schools.edit', $s->id) }}"
-                           class="bg-yellow-400 px-2 py-1 rounded">
+                        <a href="{{ route('superadmin.schools.edit', $s->id) }}"
+                           class="bg-green-400 px-2 py-1 rounded">
                            ✏️
                         </a>
 
-                        <form action="{{ route('schools.destroy', $s->id) }}"
+                        <form action="{{ route('superadmin.schools.destroy', $s->id) }}"
                               method="POST"
                               class="inline"
                               onsubmit="return confirm('ยืนยันการลบ?')">
@@ -117,7 +117,7 @@
                             @method('DELETE')
 
                             <button class="bg-red-500 text-white px-2 py-1 rounded">
-                                🗑️
+                                🚮
                             </button>
                         </form>
 

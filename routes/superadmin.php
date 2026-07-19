@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\SuperAdmin\Survey\SurveyController;
+use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SuperAdmin\OnlineUserController;
 use App\Http\Controllers\SuperAdmin\UserLoginLogController;
 
@@ -57,7 +58,15 @@ Route::prefix('superadmin')
         |--------------------------------------------------------------------------
         */
 
-        // Route::resource('schools', SchoolController::class);
+        Route::resource('schools', SchoolController::class)
+            ->only([
+                    'index',
+                    'create',
+                    'store',
+                    'edit',
+                    'update',
+                    'destroy',
+                ]);
 
         /*
         |--------------------------------------------------------------------------

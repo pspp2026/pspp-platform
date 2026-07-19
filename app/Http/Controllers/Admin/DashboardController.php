@@ -10,18 +10,31 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return view('admin.dashboard', [
-            'totalUsers' => User::count(),
-            'pendingUsers' => User::where('status', 'pending')->count(),
-            'approvedUsers' => User::where('status', 'approved')->count(),
-            'rejectedUsers' => User::where('status', 'rejected')->count(),
+        $schoolId = auth()->user()->school_id;
 
-            // แยกตามโรงเรียน (ใช้ school_id + join)
+        return view('admin.dashboard', [
+
+            'totalUsers' => User::where('school_id', $schoolId)->count(),
+
+            'pendingUsers' => User::where('school_id', $schoolId)
+                ->where('status', 'pending')
+                ->count(),
+
+            'approvedUsers' => User::where('school_id', $schoolId)
+                ->where('status', 'approved')
+                ->count(),
+
+            'rejectedUsers' => User::where('school_id', $schoolId)
+                ->where('status', 'rejected')
+                ->count(),
+
+            // แสดงเฉพาะโรงเรียนของ Admin
             'schools' => User::join('schools', 'users.school_id', '=', 'schools.id')
                 ->select('schools.school_name', DB::raw('COUNT(*) as total'))
+                ->where('users.school_id', $schoolId)
                 ->groupBy('schools.school_name')
-                ->orderByDesc('total')
                 ->get(),
         ]);
     }
+    
 }

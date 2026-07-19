@@ -14,25 +14,25 @@
         </a>
 
         {{-- Lessons --}}
-        <a href="#lessons"
+        <a href="{{ route('student.lessons') }}"
            class="block px-3 py-2 rounded hover:bg-indigo-700 transition">
             📚 บทเรียน
         </a>
 
         {{-- Assignments --}}
-        <a href="#assignments"
+        <a href="{{ route('student.assignments') }}"
            class="block px-3 py-2 rounded hover:bg-indigo-700 transition">
             📝 การบ้าน
         </a>
 
         {{-- Scores --}}
-        <a href="#scores"
+        <a href="{{ route('student.scores') }}"
            class="block px-3 py-2 rounded hover:bg-indigo-700 transition">
             📊 คะแนน
         </a>
 
         {{-- Schedule --}}
-        <a href="#schedule"
+        <a href="{{ route('student.schedule') }}"
            class="block px-3 py-2 rounded hover:bg-indigo-700 transition">
             📅 ตารางเรียน
         </a>

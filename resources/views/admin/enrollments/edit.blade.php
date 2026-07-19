@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
 
@@ -15,7 +15,7 @@
                 🎓 <h1>แก้ไขการลงทะเบียน</h1>
             </h1>
 
-            <a href="{{ route('enrollments.index') }}"
+            <a href="{{ route('admin.enrollments.index') }}"
                class="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded-lg">
 
                 ← กลับ
@@ -45,7 +45,7 @@
             @endif
 
 
-            <form action="{{ route('enrollments.update', $enrollment) }}" method="POST">
+            <form action="{{ route('admin.enrollments.update', $enrollment) }}" method="POST">
             @csrf
             @method('PUT')
 
@@ -55,34 +55,18 @@
 
                         {{-- นักเรียน --}}
                         <div>
+                            <label class="font-medium">นักเรียน</label>
 
-                            <label class="font-medium">
-                                นักเรียน
-                            </label>
+                            <div class="mt-2 rounded-lg border bg-gray-100 p-3">
+                                {{ $enrollment->student->student_code }}
+                                -
+                                {{ $enrollment->student->full_name }}
+                            </div>
 
-                            <select
+                            <input
+                                type="hidden"
                                 name="student_id"
-                                class="w-full mt-2 border rounded-lg p-2"
-                                required>
-
-                                <option value="">-- เลือกนักเรียน --</option>
-
-                                @foreach($students as $student)
-
-                                    <option
-                                        value="{{ $student->id }}"
-                                        {{ old('student_id')==$student->id?'selected':'' }}>
-
-                                        {{ $student->student_code }}
-                                        -
-                                        {{ $student->full_name }}
-
-                                    </option>
-
-                                @endforeach
-
-                            </select>
-
+                                value="{{ $enrollment->student_id }}">
                         </div>
 
 

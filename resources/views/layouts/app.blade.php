@@ -17,7 +17,7 @@
 
     {{-- CSS ของแต่ละหน้า --}}
     @stack('styles')
-
+    
 </head>
 
 <body class="bg-gray-100">
@@ -32,14 +32,27 @@
     {{-- Navbar --}}
     {{-- ========================================================= --}}
 
-    <nav class="bg-purple-900 text-white px-6 py-4 flex justify-between items-center">
+    <nav class="bg-purple-900 text-white px-4 md:px-6 h-16 flex items-center justify-between shadow-md sticky top-0 z-50">
 
         {{-- Logo --}}
-        <h2 class="text-xl font-bold">
+      
+        <div class="flex items-center gap-3">
 
-            PSPP SYSTEM
+            <button
+                id="mobile-menu-btn"
+                class="md:hidden text-2xl">
 
-        </h2>
+                ☰
+
+            </button>
+
+            <h2 class="font-bold text-lg md:text-2xl">
+
+                PSPP SYSTEM
+
+            </h2>
+
+        </div>
 
         {{-- Right Menu --}}
         <div class="flex items-center gap-3">

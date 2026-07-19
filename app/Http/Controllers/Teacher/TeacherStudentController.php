@@ -26,11 +26,11 @@ class TeacherStudentController extends Controller
 
         $teacher = $user->teacher;
 
-        abort_unless(
-            $teacher && (int) $schedule->teacher_id === (int) $teacher->id,
-            403,
-            'คุณไม่มีสิทธิ์ดูรายชื่อนักเรียนของคาบนี้'
-        );
+    abort_unless(
+    $teacher && (int) $schedule->teacher_id === (int) $teacher->user_id,
+    403,
+    'คุณไม่มีสิทธิ์ดูรายชื่อนักเรียนของคาบนี้'
+);
 
         $students = Student::query()
             ->with([

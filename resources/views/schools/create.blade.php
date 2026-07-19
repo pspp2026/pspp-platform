@@ -27,7 +27,7 @@
             </div>
         @endif
 
-        <form action="{{ route('schools.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('superadmin.schools.store') }}" method="POST" class="space-y-4">
             @csrf
 
             <div class="grid grid-cols-2 gap-4">
@@ -127,10 +127,10 @@
                         </td>
 
                         <td class="p-2 text-center space-x-2">
-                            <a href="{{ route('schools.edit', $s->id) }}"
+                            <a href="{{ route('superadmin.schools.edit', $s->id) }}"
                                class="bg-yellow-400 px-2 py-1 rounded text-sm">✏️</a>
 
-                            <form action="{{ route('schools.destroy', $s->id) }}" method="POST" class="inline">
+                            <form action="{{ route('superadmin.schools.destroy', $s->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
                                 <button onclick="return confirm('ลบจริงไหม?')"
