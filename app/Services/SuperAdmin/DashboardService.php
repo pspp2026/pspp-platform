@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\PsppEvaluation;
+use App\Models\UserOnline;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -352,5 +353,29 @@ class DashboardService
             }
 
             return $matrix;
+        }
+
+        /**
+         * ผู้ใช้ออนไลน์ (แสดง 10 คนล่าสุด ไม่รวม SuperAdmin)
+         */
+        public function getOnlineUsers()
+        {
+            return UserOnline::with('user.school')
+                ->whereHas('user', function ($query) {
+                    $query->where('role', '!=', 'superadmin');
+                })
+                ->orderByDesc('last_activity')
+                ->limit(10)
+                ->get();
+        }
+
+        /**
+         * จำนวนผู้ใช้ออนไลน์ทั้งหมด (ไม่รวม SuperAdmin)
+         */
+        public function getOnlineUsersCount(): int
+        {
+            return UserOnline::whereHas('user', function ($query) {
+                $query->where('role', '!=', 'superadmin');
+            })->count();
         }
 }

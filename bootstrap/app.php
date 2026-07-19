@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //     \App\Http\Middleware\CheckPsppEvaluation::class
         // );
 
+       
         /*
         |--------------------------------------------------------------------------
         | Route Middleware Alias
@@ -31,12 +32,12 @@ return Application::configure(basePath: dirname(__DIR__))
         */
 
         $middleware->alias([
-
-            'admin' => \App\Http\Middleware\AdminOnly::class,
-            'approved' => \App\Http\Middleware\CheckApproved::class,
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'admin'        => \App\Http\Middleware\AdminOnly::class,
+            'approved'     => \App\Http\Middleware\CheckApproved::class,
+            'role'         => \App\Http\Middleware\RoleMiddleware::class,
             'school.admin' => \App\Http\Middleware\EnsureSchoolAdmin::class,
 
+            'track.online' => \App\Http\Middleware\TrackOnlineUsers::class,
         ]);
 
     })

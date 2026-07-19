@@ -53,7 +53,12 @@ use App\Http\Controllers\LessonProgressController;
     */
     Route::prefix('staff')
         ->name('staff.')
-        ->middleware(['auth', 'approved', 'role:staff'])
+        ->middleware([
+            'auth',
+            'approved',
+            'role:staff',
+            'track.online',
+        ])
         ->group(function () {
 
             Route::get('/dashboard', [StaffDashboard::class, 'index'])

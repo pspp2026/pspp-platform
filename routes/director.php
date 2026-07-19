@@ -56,6 +56,7 @@ Route::prefix('director')
         'approved',
         'role:director',
         'school.admin',
+        'track.online',
     ])
     ->group(function () {
 

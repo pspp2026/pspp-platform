@@ -100,6 +100,7 @@
 
             </a>
 
+
             <hr class="border-slate-700 my-3">
 
             <p class="px-3 py-2 text-xs uppercase tracking-widest text-slate-400">
@@ -112,6 +113,15 @@
                 <span>⚙️</span>
 
                 <span>Settings</span>
+
+            </a>
+            
+            <a href="{{ route('superadmin.online-users') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+
+                <span>👨‍💻</span>
+
+                <span>Online Users</span>
 
             </a>
 

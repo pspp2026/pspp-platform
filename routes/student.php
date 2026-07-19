@@ -50,7 +50,12 @@ use App\Http\Controllers\LessonProgressController;
     */
     Route::prefix('student')
         ->name('student.')
-        ->middleware('role:student')
+        ->middleware([
+            'auth',
+            'approved',
+            'role:student',
+            'track.online',
+        ])
         ->group(function () {
 
             Route::get('/dashboard', [StudentDashboard::class, 'index'])->name('dashboard');

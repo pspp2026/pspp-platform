@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\SuperAdmin\Survey\SurveyController;
+use App\Http\Controllers\SuperAdmin\OnlineUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,7 @@ Route::prefix('superadmin')
         'auth',
         'approved',
         'role:superadmin',
+        'track.online',
     ])
     ->group(function () {
 
@@ -71,5 +73,8 @@ Route::prefix('superadmin')
         */
 
         // Route::resource('settings', SettingController::class);
+
+        Route::get('/online-users', [OnlineUserController::class, 'index'])
+            ->name('online-users');
 
     });

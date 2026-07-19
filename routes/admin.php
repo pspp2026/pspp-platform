@@ -60,6 +60,7 @@ Route::prefix('admin')
         'approved',
         'role:admin',
         'school.admin',
+        'track.online',
     ])
     ->group(function () {
 

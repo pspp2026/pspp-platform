@@ -34,6 +34,9 @@
                 {{-- Evaluation Summary --}}
                 @include('components.dashboard.evaluation-summary')
 
+                {{-- Online Users --}}
+                @include('components.dashboard.online-users')
+
                 {{-- Quick Actions + Activities --}}
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 

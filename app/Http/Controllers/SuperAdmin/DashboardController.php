@@ -36,6 +36,8 @@ class DashboardController extends Controller
             'notifications'    => $this->dashboardService->getNotifications(),
             'evaluationSummary' => $this->dashboardService->getEvaluationSummary(),
             'evaluationMatrix' => $this->dashboardService->getEvaluationMatrix(),
+            'onlineUsers'       => $this->dashboardService->getOnlineUsers(),
+            'onlineUsersCount'  => $this->dashboardService->getOnlineUsersCount(),
         ]);
     }
    

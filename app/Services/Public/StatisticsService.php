@@ -2,6 +2,8 @@
 
 namespace App\Services\Public;
 
+use App\Services\OnlineUserService;
+
 class StatisticsService
 {
     /**
@@ -106,11 +108,11 @@ class StatisticsService
     }
 
     /**
-     * ออนไลน์ (ชั่วคราว)
+     * ออนไลน์ 
      */
-    public function onlineUsers(): int
+   public function onlineUsers(): int
     {
-        return 1;
+        return app(OnlineUserService::class)->count();
     }
 
     /**

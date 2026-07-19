@@ -62,4 +62,26 @@ class PsppEvaluation extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+ * คะแนนรวม
+ */
+    public function getTotalScoreAttribute(): int
+    {
+        $total = 0;
+
+        for ($i = 1; $i <= 23; $i++) {
+            $total += (int) $this->{'answer' . $i};
+        }
+
+        return $total;
+    }
+
+    /**
+     * คะแนนเฉลี่ย
+     */
+    public function getAverageScoreAttribute(): float
+    {
+        return round($this->total_score / 23, 2);
+    }
 }

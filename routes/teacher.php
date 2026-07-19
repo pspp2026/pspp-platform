@@ -59,6 +59,7 @@ Route::prefix('teacher')
         'auth',
         'approved',
         'role:teacher',
+        'track.online',
     ])
     ->group(function () {
 

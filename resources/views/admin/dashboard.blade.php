@@ -10,7 +10,7 @@
     <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-8 text-white">
 
         <h1 class="text-3xl font-bold">
-            ระบบบริหารจัดการโรงเรียนพระปริยัติธรรม
+            ระบบบริหารจัดการโรงเรียนพระปริยัติธรรม แผนกสามัญศึกษา กลุ่มจังหวัดแพร่ เขต 6
         </h1>
 
         <p class="mt-2 text-blue-100 text-lg">
