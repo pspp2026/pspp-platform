@@ -23,7 +23,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('schools.update', $school->id) }}" class="space-y-4">
+    <form method="POST" action="{{ route('superadmin.schools.update', $school->id) }}" class="space-y-4">
         @csrf
         @method('PUT')
 

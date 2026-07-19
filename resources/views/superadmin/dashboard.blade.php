@@ -1,64 +1,39 @@
-@extends('layouts.app')
+@extends('layouts.superadmin')
 
-@section('title', 'Super Admin Dashboard')
+@section('title','Super Admin Dashboard')
 
 @section('content')
 
-<div class="min-h-screen bg-gray-100">
+{{-- Hero --}}
+@include('components.dashboard.hero')
 
-    {{-- Top Navigation --}}
-    @include('partials.navbar')
+{{-- Statistics --}}
+@include('components.dashboard.statistics')
 
-    <div class="flex">
+{{-- Charts --}}
+@include('components.dashboard.charts')
 
-        {{-- Left Sidebar --}}
-        @include('partials.sidebar')
+{{-- Evaluation Matrix --}}
+@include('components.dashboard.evaluation-matrix')
 
-        {{-- Main Content --}}
-        <main class="flex-1 overflow-x-hidden">
+{{-- Evaluation Summary --}}
+@include('components.dashboard.evaluation-summary')
 
-            <div class="p-6 space-y-6">
+{{-- Online Users --}}
+@include('components.dashboard.online-users')
 
-                {{-- Hero Section --}}
-                @include('components.dashboard.hero')
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-                {{-- Statistics --}}
-                @include('components.dashboard.statistics')
-              
-                {{-- Charts --}}
-                @include('components.dashboard.charts')
+    <div>
+        @include('components.dashboard.quick-actions')
+    </div>
 
-                {{-- Evaluation Matrix --}}
-                @include('components.dashboard.evaluation-matrix')
-
-                {{-- Evaluation Summary --}}
-                @include('components.dashboard.evaluation-summary')
-
-                {{-- Online Users --}}
-                @include('components.dashboard.online-users')
-
-                {{-- Quick Actions + Activities --}}
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-                    <div>
-                        @include('components.dashboard.quick-actions')
-                    </div>
-
-                    <div class="xl:col-span-2">
-                        @include('components.dashboard.activities')
-                    </div>
-
-                </div>
-
-                {{-- System Status --}}
-                @include('components.dashboard.system-status')
-
-            </div>
-
-        </main>
-
+    <div class="xl:col-span-2">
+        @include('components.dashboard.activities')
     </div>
 
 </div>
+
+@include('components.dashboard.system-status')
 
 @endsection

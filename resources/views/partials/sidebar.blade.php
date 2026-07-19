@@ -1,184 +1,208 @@
-<aside class="w-72 min-h-screen bg-slate-900 text-white shadow-lg">
+{{-- Sidebar --}}
+<aside
+    class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-slate-900 text-white shadow-2xl
+           transform transition-transform duration-300 ease-in-out
+           md:translate-x-0"
+    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
     {{-- Header --}}
-    <div class="px-6 py-5 border-b border-slate-700">
+    <div class="flex items-center justify-between border-b border-slate-700 px-6 py-5">
 
-        <h2 class="text-xl font-bold">
-            PSPP Platform
-        </h2>
+        <div>
+            <h2 class="text-xl font-bold">
+                🎓 PSPP Platform
+            </h2>
 
-        <p class="text-sm text-slate-400 mt-1">
-            {{ ucfirst(auth()->user()->role) }}
-        </p>
+            <p class="mt-1 text-sm text-slate-400">
+                Super Administrator
+            </p>
+        </div>
+
+        {{-- ปุ่มปิดบนมือถือ --}}
+        <button
+            @click="sidebarOpen = false"
+            class="rounded-lg p-2 hover:bg-slate-800 md:hidden">
+
+            ✕
+
+        </button>
+
+    </div>
+
+    {{-- User --}}
+    <div class="border-b border-slate-800 px-6 py-5">
+
+        <div class="flex items-center gap-3">
+
+            <img
+                src="{{ auth()->user()->profile_image
+                    ? asset('storage/' . auth()->user()->profile_image)
+                    : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) }}"
+                class="h-12 w-12 rounded-full border-2 border-slate-600 object-cover">
+
+            <div>
+
+                <div class="font-semibold">
+
+                    {{ auth()->user()->name }}
+
+                </div>
+
+                <div class="text-xs text-slate-400">
+
+                    {{ auth()->user()->email }}
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
     {{-- Menu --}}
-    <nav class="p-4 space-y-2">
+    <nav class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
 
-        {{-- ============================= --}}
-        {{-- SUPER ADMIN --}}
-        {{-- ============================= --}}
-        @if(auth()->user()->role == 'superadmin')
+        {{-- Dashboard --}}
+        <div>
 
-            <p class="px-3 py-2 text-xs uppercase tracking-widest text-slate-400">
+            <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
                 Dashboard
             </p>
 
             <a href="{{ route('superadmin.dashboard') }}"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+               class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+               {{ request()->routeIs('superadmin.dashboard')
+                    ? 'bg-indigo-600 text-white shadow'
+                    : 'hover:bg-slate-800' }}">
 
-                <span>🏠</span>
+                <span class="text-lg">🏠</span>
 
                 <span>Dashboard</span>
 
             </a>
 
-            <hr class="border-slate-700 my-3">
+        </div>
 
-            <p class="px-3 py-2 text-xs uppercase tracking-widest text-slate-400">
+        {{-- System Management --}}
+        <div>
+
+            <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
                 System Management
             </p>
 
-            <a href="{{ route('superadmin.schools.index') }}"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+            <div class="space-y-1">
 
-                <span>🏫</span>
+                <a href="{{ route('superadmin.schools.index') }}"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-slate-800">
 
-                <span>Schools</span>
+                    🏫 <span>Schools</span>
 
-            </a>
+                </a>
 
-            <a href="#"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+                <a href="#"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-slate-800">
 
-                <span>👥</span>
+                    👥 <span>Users</span>
 
-                <span>Users</span>
+                </a>
 
-            </a>
+                <a href="#"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-slate-800">
 
-            <a href="#"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+                    👨‍🏫 <span>Teachers</span>
 
-                <span>👨‍🏫</span>
+                </a>
 
-                <span>Teachers</span>
+                <a href="#"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-slate-800">
 
-            </a>
+                    🎓 <span>Students</span>
 
-            <a href="#"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+                </a>
 
-                <span>🎓</span>
+            </div>
 
-                <span>Students</span>
+        </div>
 
-            </a>
+        {{-- Reports --}}
+        <div>
 
-            <hr class="border-slate-700 my-3">
-
-            <p class="px-3 py-2 text-xs uppercase tracking-widest text-slate-400">
+            <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
                 Reports
             </p>
 
-            <a href="#"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+            <div class="space-y-1">
 
-                <span>📊</span>
+                <a href="#"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-slate-800">
 
-                <span>Reports</span>
+                    📊 <span>Reports</span>
 
-            </a>
-            
-            
-            <a href="#"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+                </a>
 
-                <span>📝</span>
+                <a href="#"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-slate-800">
 
-                <span>Logs</span>
+                    📝 <span>Logs</span>
 
-            </a>
+                </a>
 
+            </div>
 
-            <hr class="border-slate-700 my-3">
+        </div>
 
-            <p class="px-3 py-2 text-xs uppercase tracking-widest text-slate-400">
+        {{-- System --}}
+        <div>
+
+            <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
                 System
             </p>
 
-            <a href="#"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+            <div class="space-y-1">
 
-                <span>⚙️</span>
+                <a href="#"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-slate-800">
 
-                <span>Settings</span>
+                    ⚙️ <span>Settings</span>
 
-            </a>
-            
-            <a href="{{ route('superadmin.online-users') }}"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+                </a>
 
-                <span>👨‍💻</span>
+                <a href="{{ route('superadmin.online-users') }}"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                   {{ request()->routeIs('superadmin.online-users')
+                        ? 'bg-indigo-600'
+                        : 'hover:bg-slate-800' }}">
 
-                <span>Online Users</span>
+                    👨‍💻 <span>Online Users</span>
 
-            </a>
+                </a>
 
-            <a href="{{ route('superadmin.user-login-logs.index') }}"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+                <a href="{{ route('superadmin.user-login-logs.index') }}"
+                   class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                   {{ request()->routeIs('superadmin.user-login-logs.*')
+                        ? 'bg-indigo-600'
+                        : 'hover:bg-slate-800' }}">
 
-                <span>🔐</span>
+                    🔐 <span>User Login Logs</span>
 
-                <span>User Login Logs</span>
+                </a>
 
-            </a>
+            </div>
 
-        @endif
-
-        {{-- ============================= --}}
-        {{-- ADMIN --}}
-        {{-- ============================= --}}
-        @if(auth()->user()->role == 'admin')
-
-            <a href="{{ route('admin.dashboard') }}"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
-
-                🏫 Dashboard
-
-            </a>
-
-        @endif
-
-        {{-- ============================= --}}
-        {{-- TEACHER --}}
-        {{-- ============================= --}}
-        @if(auth()->user()->role == 'teacher')
-
-            <a href="{{ route('teacher.dashboard') }}"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
-
-                👨‍🏫 Dashboard
-
-            </a>
-
-        @endif
-
-        {{-- ============================= --}}
-        {{-- STUDENT --}}
-        {{-- ============================= --}}
-        @if(auth()->user()->role == 'student')
-
-            <a href="{{ route('student.dashboard') }}"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
-
-                🎓 Dashboard
-
-            </a>
-
-        @endif
+        </div>
 
     </nav>
+
+    {{-- Footer --}}
+    <div class="border-t border-slate-800 px-6 py-4">
+
+        <div class="text-center text-xs text-slate-500">
+
+            PSPP Platform v1.0
+
+        </div>
+
+    </div>
 
 </aside>
