@@ -6,6 +6,7 @@ use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\SuperAdmin\Survey\SurveyController;
 use App\Http\Controllers\SuperAdmin\OnlineUserController;
+use App\Http\Controllers\SuperAdmin\UserLoginLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,5 +77,8 @@ Route::prefix('superadmin')
 
         Route::get('/online-users', [OnlineUserController::class, 'index'])
             ->name('online-users');
+
+        Route::get('/user-login-logs', [UserLoginLogController::class, 'index'])
+        ->name('user-login-logs.index');
 
     });

@@ -90,7 +90,8 @@
                 <span>Reports</span>
 
             </a>
-
+            
+            
             <a href="#"
                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
 
@@ -122,6 +123,15 @@
                 <span>👨‍💻</span>
 
                 <span>Online Users</span>
+
+            </a>
+
+            <a href="{{ route('superadmin.user-login-logs.index') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800">
+
+                <span>🔐</span>
+
+                <span>User Login Logs</span>
 
             </a>
 

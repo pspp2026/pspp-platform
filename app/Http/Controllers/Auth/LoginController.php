@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\UserOnline;
+use App\Models\UserLoginLog;
+
 class LoginController extends Controller
 {
     /**
@@ -38,6 +41,7 @@ class LoginController extends Controller
 
         $user = Auth::user();
 
+
         /*
         |--------------------------------------------------------------------------
         | ตรวจสถานะการอนุมัติ
@@ -53,6 +57,23 @@ class LoginController extends Controller
                 ->route('pending')
                 ->with('error', 'บัญชีของคุณยังไม่ได้รับการอนุมัติ');
         }
+
+        
+
+        /*
+        |--------------------------------------------------------------------------
+        | บันทึกประวัติการ Login
+        |--------------------------------------------------------------------------
+        */
+        UserLoginLog::create([
+            'user_id'    => $user->id,
+            'school_id'  => $user->school_id,
+            'role'       => $user->role,
+            'login_at'   => now(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'session_id' => $request->session()->getId(),
+        ]);
 
         /*
         |--------------------------------------------------------------------------
@@ -76,6 +97,22 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        $userId = Auth::id();
+
+        if ($userId) {
+
+            // ลบออกจากผู้ใช้ออนไลน์
+            UserOnline::where('user_id', $userId)->delete();
+
+            // บันทึกเวลา Logout
+            UserLoginLog::where('user_id', $userId)
+                ->whereNull('logout_at')
+                ->latest('login_at')
+                ->first()?->update([
+                    'logout_at' => now(),
+                ]);
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();
