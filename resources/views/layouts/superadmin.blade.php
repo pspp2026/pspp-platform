@@ -87,11 +87,35 @@
 
             </div>
 
-            <img
-                src="{{ auth()->user()->profile_image
-                    ? asset('storage/'.auth()->user()->profile_image)
-                    : 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->name) }}"
-                class="h-10 w-10 rounded-full border object-cover">
+            <div class="flex items-center gap-2">
+
+                <a href="{{ route('home') }}"
+                class="rounded-lg bg-slate-100 px-3 py-2 text-sm hover:bg-slate-200">
+
+                    🏠
+
+                </a>
+
+                <form action="{{ route('logout') }}" method="POST">
+
+                    @csrf
+
+                    <button
+                        class="rounded-lg bg-red-500 px-3 py-2 text-white hover:bg-red-600">
+
+                        ⎋
+
+                    </button>
+
+                </form>
+
+                <img
+                    src="{{ auth()->user()->profile_image
+                        ? asset('storage/'.auth()->user()->profile_image)
+                        : 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->name) }}"
+                    class="h-10 w-10 rounded-full border object-cover">
+
+            </div>
 
         </header>
 
