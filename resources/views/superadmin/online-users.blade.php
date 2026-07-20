@@ -1,33 +1,18 @@
-@extends('layouts.app')
+@extends('layouts.superadmin')
 
 @section('title', 'ผู้ใช้ออนไลน์')
 
 @section('content')
 
-<div class="min-h-screen bg-gray-100">
+<div class="p-6">
 
-    {{-- Top Navigation --}}
-    @include('partials.navbar')
+    <div class="bg-white rounded-xl shadow p-6">
 
-    <div class="flex">
+        <h1 class="text-2xl font-bold mb-6">
+            👨‍💻 ผู้ใช้ออนไลน์
+        </h1>
 
-        {{-- Sidebar --}}
-        @include('partials.sidebar')
-
-        <main class="flex-1 p-6">
-
-            <div class="bg-white rounded-xl shadow p-6">
-
-                <h1 class="text-2xl font-bold mb-6">
-                    👨‍💻 ผู้ใช้ออนไลน์
-                </h1>
-
-                {{-- ตารางผู้ใช้ออนไลน์ --}}
-                @include('components.dashboard.online-users')
-
-            </div>
-
-        </main>
+        @include('components.dashboard.online-users')
 
     </div>
 
