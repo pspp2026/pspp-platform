@@ -70,7 +70,7 @@ class DashboardController extends Controller
         return view('student.profile', compact('user', 'provinces'));
     }
 
-    /**
+   /**
      * บันทึกข้อมูลโปรไฟล์นักเรียน
      */
     public function updateProfile(Request $request)
@@ -96,7 +96,6 @@ class DashboardController extends Controller
             'province_id' => ['nullable'],
             'district_id' => ['nullable'],
             'subdistrict_id' => ['nullable'],
-          
 
             'profile_image' => [
                 'nullable',
@@ -114,47 +113,142 @@ class DashboardController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | ตั้งชื่อรูปโปรไฟล์
+        | บันทึกข้อมูล User
         |--------------------------------------------------------------------------
-        | ตัวอย่าง: STD-PK-70630162_20260709_214500.jpg
+        */
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+
+        // รหัสภายนอก / รหัสนักเรียน
+        $user->external_code = $validated['external_code'] ?? null;
+
+        // ใช้ school_id จาก Student
+        if ($student && $student->school_id) {
+            $user->school_id = $student->school_id;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | สร้าง User Code ใหม่
+        |--------------------------------------------------------------------------
+        */
+        $user->load('school');
+
+        $user->user_code = UserCodeService::generate($user);
+
+        if (! $user->user_code) {
+            return back()
+                ->withErrors([
+                    'external_code' => 'ไม่สามารถสร้าง User Code ได้'
+                ])
+                ->withInput();
+        }
+
+        $user->phone = $validated['phone'] ?? null;
+
+        $user->address1 = $validated['address1'] ?? null;
+        $user->address2 = $validated['address2'] ?? null;
+
+        $user->province_id = $validated['province_id'] ?? null;
+        $user->district_id = $validated['district_id'] ?? null;
+        $user->subdistrict_id = $validated['subdistrict_id'] ?? null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | เปลี่ยน Password
+        |--------------------------------------------------------------------------
+        */
+        if (! empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | บันทึก users
+        |--------------------------------------------------------------------------
+        */
+        $user->save();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sync external_code → students.student_code
+        |--------------------------------------------------------------------------
+        */
+        if ($student) {
+            $student->update([
+                'student_code' => $user->external_code,
+            ]);
+
+            // Refresh ค่า Student หลัง Update
+            $student->refresh();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | กำหนดข้อมูลสำหรับชื่อไฟล์รูป
+        |--------------------------------------------------------------------------
         */
         $role = 'STD';
-        $schoolCode = $student?->school?->school_code ?? 'UNKNOWN';
-        $studentCode = $student?->student_code ?? ('USER-' . $user->id);
 
-        $schoolCode = preg_replace('/[^A-Za-z0-9_-]/', '', $schoolCode);
-        $studentCode = preg_replace('/[^A-Za-z0-9_-]/', '', $studentCode);
+        $schoolCode = $student?->school?->school_code ?? 'UNKNOWN';
+
+        // ใช้ student_code ล่าสุดหลังจาก Sync
+        $studentCode = $student?->student_code
+            ?? $user->external_code
+            ?? ('USER-' . $user->id);
+
+        $schoolCode = preg_replace(
+            '/[^A-Za-z0-9_-]/',
+            '',
+            $schoolCode
+        );
+
+        $studentCode = preg_replace(
+            '/[^A-Za-z0-9_-]/',
+            '',
+            $studentCode
+        );
 
         $timestamp = now()->format('Ymd_His');
 
         /*
         |--------------------------------------------------------------------------
-        | อัปโหลดรูปโปรไฟล์
+        | อัปโหลดรูป Profile
         |--------------------------------------------------------------------------
-        | ตรวจไฟล์จริงก่อนเสมอ เพื่อไม่ให้ cropped_image เก่ามาขวาง
         */
         if ($request->hasFile('profile_image')) {
+
             $file = $request->file('profile_image');
 
             if (! $file->isValid()) {
                 return back()
                     ->withInput()
                     ->withErrors([
-                        'profile_image' => 'อัปโหลดรูปภาพไม่สำเร็จ กรุณาเลือกรูปใหม่อีกครั้ง',
+                        'profile_image' =>
+                            'อัปโหลดรูปภาพไม่สำเร็จ กรุณาเลือกรูปใหม่อีกครั้ง',
                     ]);
             }
 
-            $extension = strtolower($file->getClientOriginalExtension());
+            $extension = strtolower(
+                $file->getClientOriginalExtension()
+            );
 
-            if (! in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            if (! in_array(
+                $extension,
+                ['jpg', 'jpeg', 'png', 'webp'],
+                true
+            )) {
                 return back()
                     ->withInput()
                     ->withErrors([
-                        'profile_image' => 'รองรับเฉพาะไฟล์ JPG, JPEG, PNG และ WEBP',
+                        'profile_image' =>
+                            'รองรับเฉพาะไฟล์ JPG, JPEG, PNG และ WEBP',
                     ]);
             }
 
-            $extension = $extension === 'jpeg' ? 'jpg' : $extension;
+            $extension = $extension === 'jpeg'
+                ? 'jpg'
+                : $extension;
 
             $fileName = sprintf(
                 '%s-%s-%s_%s.%s',
@@ -165,31 +259,65 @@ class DashboardController extends Controller
                 $extension
             );
 
+            /*
+            |----------------------------------------------------------------------
+            | ลบรูปเก่า
+            |----------------------------------------------------------------------
+            */
             if (
                 $user->profile_image &&
-                Storage::disk('public')->exists($user->profile_image)
+                Storage::disk('public')->exists(
+                    $user->profile_image
+                )
             ) {
-                Storage::disk('public')->delete($user->profile_image);
+                Storage::disk('public')->delete(
+                    $user->profile_image
+                );
             }
 
+            /*
+            |----------------------------------------------------------------------
+            | บันทึกรูปใหม่
+            |----------------------------------------------------------------------
+            */
             $user->profile_image = $file->storeAs(
                 'profiles',
                 $fileName,
                 'public'
             );
+
+            $user->save();
+
         } elseif ($request->filled('cropped_image')) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | รูปที่ Crop จาก Browser
+            |--------------------------------------------------------------------------
+            */
+
             $image = $request->cropped_image;
 
-            if (! preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,/', $image, $matches)) {
+            if (
+                ! preg_match(
+                    '/^data:image\/(jpeg|jpg|png|webp);base64,/',
+                    $image,
+                    $matches
+                )
+            ) {
                 return back()
                     ->withInput()
                     ->withErrors([
-                        'cropped_image' => 'รูปภาพที่ตัดไม่อยู่ในรูปแบบที่รองรับ',
+                        'cropped_image' =>
+                            'รูปภาพที่ตัดไม่อยู่ในรูปแบบที่รองรับ',
                     ]);
             }
 
             $extension = strtolower($matches[1]);
-            $extension = $extension === 'jpeg' ? 'jpg' : $extension;
+
+            $extension = $extension === 'jpeg'
+                ? 'jpg'
+                : $extension;
 
             $imageData = preg_replace(
                 '/^data:image\/(jpeg|jpg|png|webp);base64,/',
@@ -197,14 +325,23 @@ class DashboardController extends Controller
                 $image
             );
 
-            $imageData = str_replace(' ', '+', $imageData);
-            $decodedImage = base64_decode($imageData, true);
+            $imageData = str_replace(
+                ' ',
+                '+',
+                $imageData
+            );
+
+            $decodedImage = base64_decode(
+                $imageData,
+                true
+            );
 
             if ($decodedImage === false) {
                 return back()
                     ->withInput()
                     ->withErrors([
-                        'cropped_image' => 'ไม่สามารถอ่านข้อมูลรูปภาพได้',
+                        'cropped_image' =>
+                            'ไม่สามารถอ่านข้อมูลรูปภาพได้',
                     ]);
             }
 
@@ -219,75 +356,40 @@ class DashboardController extends Controller
 
             $imagePath = 'profiles/' . $fileName;
 
+            /*
+            |----------------------------------------------------------------------
+            | ลบรูปเก่า
+            |----------------------------------------------------------------------
+            */
             if (
                 $user->profile_image &&
-                Storage::disk('public')->exists($user->profile_image)
+                Storage::disk('public')->exists(
+                    $user->profile_image
+                )
             ) {
-                Storage::disk('public')->delete($user->profile_image);
+                Storage::disk('public')->delete(
+                    $user->profile_image
+                );
             }
 
-            Storage::disk('public')->put($imagePath, $decodedImage);
+            /*
+            |----------------------------------------------------------------------
+            | บันทึกรูป Crop
+            |----------------------------------------------------------------------
+            */
+            Storage::disk('public')->put(
+                $imagePath,
+                $decodedImage
+            );
 
             $user->profile_image = $imagePath;
+
+            $user->save();
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | บันทึกตาราง users
-        |--------------------------------------------------------------------------
-        */
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-
-        $user->external_code = $validated['external_code'] ?? null;
-
-        // ใช้ school_id จากตาราง students
-            if ($student && $student->school_id) {
-                $user->school_id = $student->school_id;
-            }
-
-        $user->load('school');
-
-        
-        $user->user_code = UserCodeService::generate($user);
-
-        
-
-        if (! $user->user_code) {
-            return back()
-                ->withErrors([
-                    'external_code' => 'ไม่สามารถสร้าง User Code ได้'
-                ])
-                ->withInput();
-        }
-        
-        $user->phone = $validated['phone'] ?? null;
-
-        $user->address1 = $validated['address1'] ?? null;
-        $user->address2 = $validated['address2'] ?? null;
-
-        $user->province_id = $validated['province_id'] ?? null;
-        $user->district_id = $validated['district_id'] ?? null;
-        $user->subdistrict_id = $validated['subdistrict_id'] ?? null;
-
-
-        if (! empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
-        }
-
-        $user->save();
-
-        /*
-        |--------------------------------------------------------------------------
-        | อัปเดตรหัสนักเรียน (ถ้ามีการส่งค่าเข้ามา)
-        |--------------------------------------------------------------------------
-        */
-        if ($student && ! empty($validated['student_code'])) {
-            $student->update([
-                'student_code' => $validated['external_code'],
-            ]);
-        }
-
-        return back()->with('success', 'อัปเดตโปรไฟล์สำเร็จ 🎉');
+        return back()->with(
+            'success',
+            'อัปเดตโปรไฟล์สำเร็จ 🎉'
+        );
     }
 }
