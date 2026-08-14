@@ -125,6 +125,10 @@ class StudentController extends Controller
         if ($user->role !== 'superadmin' && $student->school_id != $user->school_id) {
             abort(403);
         }        
+        
+        // โหลดข้อมูล User ที่เชื่อมกับนักเรียน
+        $student->load('user:id,name,profile_image');
+
         $schools = School::query()
             ->select('id', 'school_name')
             ->when($user->role !== 'superadmin', function ($query) use ($user) {
@@ -141,10 +145,12 @@ class StudentController extends Controller
             ->orderBy('name')
             ->get();
 
+
         return view('admin.students.edit', compact(
             'student',
             'schools',
-            'classrooms'
+            'classrooms',
+
         ));
     }
 

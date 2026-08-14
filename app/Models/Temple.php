@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Temple extends Model
 {
     protected $fillable = [
-        'temple_name'
+        'temple_name',
+        'province',
+        'district',
+        'subdistrict',
     ];
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Enrollment;
 use App\Models\Student;
@@ -21,7 +22,7 @@ class EnrollmentController extends Controller
     {
         $this->authorize('viewAny', Enrollment::class);
 
-        $user = auth()->user();
+        $user = Auth::user();
 
         $query = Enrollment::with([
             'student.user',
@@ -90,21 +91,23 @@ class EnrollmentController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
+
         return view('admin.enrollments.create', [
             'students' => Student::with('user')
                 ->orderBy('student_code')
                 ->get(),
 
             'schools' => School::query()
-            ->when(auth()->user()->role !== 'superadmin', function ($query) {
-                $query->where('id', auth()->user()->school_id);
-            })
-            ->orderBy('school_name')
-            ->get(),
+                ->when($user && $user->role !== 'superadmin', function ($query) use ($user) {
+                    $query->where('id', $user->school_id);
+                })
+                ->orderBy('school_name')
+                ->get(),
 
             'classrooms' => Classroom::query()
-                ->when(auth()->user()->role !== 'superadmin', function ($query) {
-                    $query->where('school_id', auth()->user()->school_id);
+                ->when($user && $user->role !== 'superadmin', function ($query) use ($user) {
+                    $query->where('school_id', $user->school_id);
                 })
                 ->orderBy('name')
                 ->get(),
@@ -163,12 +166,9 @@ class EnrollmentController extends Controller
      */
    public function edit(Enrollment $enrollment)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        if (
-            $user->role !== 'superadmin' &&
-            $enrollment->school_id != $user->school_id
-        ) {
+        if (!$user || ($user->role !== 'superadmin' && $enrollment->school_id != $user->school_id)) {
             abort(403);
         }
 
@@ -176,9 +176,9 @@ class EnrollmentController extends Controller
             'enrollment' => $enrollment,
 
             'students' => Student::with('user')
-               ->when(auth()->user()->role !== 'superadmin', function ($query) {
-        $query->where('school_id', auth()->user()->school_id);
-    })
+                ->when($user->role !== 'superadmin', function ($query) use ($user) {
+                    $query->where('school_id', $user->school_id);
+                })
                 ->orderBy('student_code')
                 ->get(),
 

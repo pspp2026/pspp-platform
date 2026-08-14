@@ -63,16 +63,24 @@
         <aside class="lg:col-span-1">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center sticky top-6">
 
-                <div class="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700 flex items-center justify-center text-5xl font-bold shadow-inner">
-                    {{ $initial }}
-                </div>
+                @if ($student->user?->profile_image)
+                    <img
+                        src="{{ asset('storage/' . $student->user->profile_image) }}"
+                        alt="{{ $student->full_name }}"
+                        class="w-28 h-28 mx-auto rounded-full object-cover shadow-inner"
+                    >
+                @else
+                    <div class="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700 flex items-center justify-center text-5xl font-bold shadow-inner">
+                        {{ $initial }}
+                    </div>
+                @endif
 
                 <h2 class="mt-4 text-xl font-bold text-slate-800">
                     {{ $student->full_name }}
                 </h2>
 
                 <p class="mt-1 text-sm text-slate-500">
-                    🪪 รหัสนักเรียน: {{ $student->student_code ?? '-' }}
+                    📚 รหัสนักเรียน: {{ $student->student_code ?? '-' }}
                 </p>
 
                 <div class="mt-5 border-t border-slate-100 pt-5 text-left space-y-3">
@@ -97,12 +105,21 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <span class="text-lg">🗓️</span>
+                        <span class="text-lg">🎂</span>
                         <div>
                             <p class="text-xs text-slate-400">วันเกิด</p>
                             <p class="text-sm font-medium text-slate-700">
                                 {{ $student->birth_date ? \Carbon\Carbon::parse($student->birth_date)->translatedFormat('j F Y') : 'ไม่ระบุ' }}
                             </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-lg">🏯</span>
+                        <div>
+                            <p class="text-xs text-slate-400">สังกัดวัด</p>
+                            <p class="text-sm font-medium text-slate-700">
+                                {{ $student->temple?->temple_name ?? 'ยังไม่ได้ระบุ' }}
+                            </p>                            
                         </div>
                     </div>
                 </div>
@@ -146,7 +163,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">🪪 รหัสนักเรียน <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">📝 รหัสนักเรียน <span class="text-red-500">*</span></label>
                             <input type="text" name="student_code" value="{{ old('student_code', $student->student_code) }}"
                                    class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                         </div>
@@ -175,7 +192,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">🪪 เลขบัตรประชาชน</label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">🔍 เลขบัตรประชาชน</label>
                             <input type="text" name="id_card" value="{{ old('id_card', $student->id_card) }}"
                                    class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
                         </div>
@@ -199,7 +216,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">🧬 เชื้อชาติ</label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">📖 เชื้อชาติ</label>
                             <select name="ethnicity" class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
                                 <option value="ไทย" @selected($ethnicity === 'ไทย')>ไทย</option>
                                 <option value="ลาว" @selected($ethnicity === 'ลาว')>ลาว</option>
@@ -209,7 +226,7 @@
                             </select>
                         </div>
                     </div>
-
+                
                     <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-end gap-3">
                         <a href="{{ route('admin.students.index') }}"
                            class="text-center px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition">

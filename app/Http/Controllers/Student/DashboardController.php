@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Province;
 use App\Models\User;
-
+use App\Models\Temple;
 use App\Services\UserCodeService;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -18,34 +16,6 @@ use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
-    /**
-     * หน้า Dashboard นักเรียน
-     */
-    public function index()
-    {
-        $lessons = Lesson::all();
-
-        $completedLessons = LessonProgress::where('user_id', Auth::id())
-            ->pluck('lesson_id')
-            ->toArray();
-
-        $totalLessons = $lessons->count();
-
-        $completed = LessonProgress::where('user_id', Auth::id())
-            ->whereIn('lesson_id', $lessons->pluck('id'))
-            ->count();
-
-        $percent = $totalLessons > 0
-            ? round(($completed / $totalLessons) * 100)
-            : 0;
-
-        return view('student.dashboard', compact(
-            'lessons',
-            'completedLessons',
-            'percent'
-        ));
-    }
-
     /**
      * หน้าโปรไฟล์นักเรียน
      */
@@ -57,20 +27,219 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $user->load(
+        /*
+        |--------------------------------------------------------------------------
+        | โหลดข้อมูลนักเรียน
+        |--------------------------------------------------------------------------
+        */
+        $user->load([
             'student.enrollments',
             'student.school',
-            'student.temple'
-        );
+            'student.temple',
+        ]);
 
+        $student = $user->student;
+
+        /*
+        |--------------------------------------------------------------------------
+        | จังหวัดสำหรับที่อยู่
+        |--------------------------------------------------------------------------
+        */
         $provinces = Province::query()
             ->orderBy('name_th')
             ->get();
 
-        return view('student.profile', compact('user', 'provinces'));
+        /*
+        |--------------------------------------------------------------------------
+        | ข้อมูลเดิมของวัด
+        |--------------------------------------------------------------------------
+        */
+        $selectedTempleProvince = $student?->temple?->province;
+        $selectedTempleDistrict = $student?->temple?->district;
+        $selectedTempleSubdistrict = $student?->temple?->subdistrict;
+        $selectedTempleId = $student?->temple_id;
+
+        /*
+        |--------------------------------------------------------------------------
+        | จังหวัดที่มีวัด
+        |--------------------------------------------------------------------------
+        */
+        $templeProvinces = Temple::query()
+            ->whereNotNull('province')
+            ->where('province', '!=', '')
+            ->select('province')
+            ->distinct()
+            ->orderBy('province')
+            ->pluck('province');
+
+        /*
+        |--------------------------------------------------------------------------
+        | อำเภอของวัด
+        |--------------------------------------------------------------------------
+        | โหลดเฉพาะกรณีที่นักเรียนมีจังหวัดเดิม
+        |--------------------------------------------------------------------------
+        */
+        $templeDistricts = collect();
+
+        if ($selectedTempleProvince) {
+            $templeDistricts = Temple::query()
+                ->where('province', $selectedTempleProvince)
+                ->whereNotNull('district')
+                ->where('district', '!=', '')
+                ->select('district')
+                ->distinct()
+                ->orderBy('district')
+                ->pluck('district');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | ตำบลของวัด
+        |--------------------------------------------------------------------------
+        */
+        $templeSubdistricts = collect();
+
+        if (
+            $selectedTempleProvince &&
+            $selectedTempleDistrict
+        ) {
+            $templeSubdistricts = Temple::query()
+                ->where('province', $selectedTempleProvince)
+                ->where('district', $selectedTempleDistrict)
+                ->whereNotNull('subdistrict')
+                ->where('subdistrict', '!=', '')
+                ->select('subdistrict')
+                ->distinct()
+                ->orderBy('subdistrict')
+                ->pluck('subdistrict');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | วัด
+        |--------------------------------------------------------------------------
+        */
+        $temples = collect();
+
+        if (
+            $selectedTempleProvince &&
+            $selectedTempleDistrict &&
+            $selectedTempleSubdistrict
+        ) {
+            $temples = Temple::query()
+                ->where('province', $selectedTempleProvince)
+                ->where('district', $selectedTempleDistrict)
+                ->where('subdistrict', $selectedTempleSubdistrict)
+                ->orderBy('temple_name')
+                ->get([
+                    'id',
+                    'temple_name',
+                    'province',
+                    'district',
+                    'subdistrict',
+                ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | การลงทะเบียนล่าสุด
+        |--------------------------------------------------------------------------
+        */
+        $enroll = $student
+            ? $student->enrollments()
+                ->latest('academic_year')
+                ->latest('semester')
+                ->first()
+            : null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | ส่งข้อมูลไป View
+        |--------------------------------------------------------------------------
+        */
+        return view('student.profile', compact(
+            'user',
+            'student',
+            'provinces',
+            'enroll',
+
+            // Temple
+            'templeProvinces',
+            'templeDistricts',
+            'templeSubdistricts',
+            'temples',
+
+            // ค่าเดิม
+            'selectedTempleProvince',
+            'selectedTempleDistrict',
+            'selectedTempleSubdistrict',
+            'selectedTempleId'
+        ));
     }
 
-   /**
+
+    /**
+     * AJAX: ดึงอำเภอของวัดตามจังหวัด
+     */
+    public function templeDistricts(string $province)
+    {
+        $districts = Temple::query()
+            ->where('province', $province)
+            ->whereNotNull('district')
+            ->where('district', '!=', '')
+            ->select('district')
+            ->distinct()
+            ->orderBy('district')
+            ->pluck('district');
+
+        return response()->json($districts);
+    }
+
+
+    /**
+     * AJAX: ดึงตำบลของวัดตามจังหวัด + อำเภอ
+     */
+    public function templeSubdistricts(
+        string $province,
+        string $district
+    ) {
+        $subdistricts = Temple::query()
+            ->where('province', $province)
+            ->where('district', $district)
+            ->whereNotNull('subdistrict')
+            ->where('subdistrict', '!=', '')
+            ->select('subdistrict')
+            ->distinct()
+            ->orderBy('subdistrict')
+            ->pluck('subdistrict');
+
+        return response()->json($subdistricts);
+    }
+
+
+    /**
+     * AJAX: ดึงวัดตามจังหวัด + อำเภอ + ตำบล
+     */
+    public function temples(
+        string $province,
+        string $district,
+        string $subdistrict
+    ) {
+        $temples = Temple::query()
+            ->where('province', $province)
+            ->where('district', $district)
+            ->where('subdistrict', $subdistrict)
+            ->orderBy('temple_name')
+            ->get([
+                'id',
+                'temple_name',
+            ]);
+
+        return response()->json($temples);
+    }
+
+
+    /**
      * บันทึกข้อมูลโปรไฟล์นักเรียน
      */
     public function updateProfile(Request $request)
@@ -81,21 +250,80 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $user->load('student.school');
+        $user->load([
+            'student.school',
+        ]);
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
 
-            'external_code' => ['nullable', 'string', 'max:50'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+            ],
 
-            'phone' => ['nullable', 'string', 'max:20'],
-            'address1' => ['nullable', 'string'],
-            'address2' => ['nullable', 'string'],
+            'external_code' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
 
-            'province_id' => ['nullable'],
-            'district_id' => ['nullable'],
-            'subdistrict_id' => ['nullable'],
+            'prefix' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
+            'first_name' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'last_name' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
+            ],
+
+            'address1' => [
+                'nullable',
+                'string',
+            ],
+
+            'address2' => [
+                'nullable',
+                'string',
+            ],
+
+            'province_id' => [
+                'nullable',
+            ],
+
+            'district_id' => [
+                'nullable',
+            ],
+
+            'subdistrict_id' => [
+                'nullable',
+            ],
+
+
+            'temple_id' => [
+                'nullable',
+                'exists:temples,id',
+            ],
 
             'profile_image' => [
                 'nullable',
@@ -104,96 +332,135 @@ class DashboardController extends Controller
                 'max:2048',
             ],
 
-            'cropped_image' => ['nullable', 'string'],
+            'cropped_image' => [
+                'nullable',
+                'string',
+            ],
 
-            'password' => ['nullable', 'confirmed', 'min:6'],
+            'password' => [
+                'nullable',
+                'confirmed',
+                'min:6',
+            ],
         ]);
 
         $student = $user->student;
 
         /*
         |--------------------------------------------------------------------------
-        | บันทึกข้อมูล User
+        | User
         |--------------------------------------------------------------------------
         */
         $user->name = $validated['name'];
         $user->email = $validated['email'];
 
-        // รหัสภายนอก / รหัสนักเรียน
-        $user->external_code = $validated['external_code'] ?? null;
+        $user->external_code =
+            $validated['external_code'] ?? null;
 
-        // ใช้ school_id จาก Student
+        /*
+        |--------------------------------------------------------------------------
+        | school_id
+        |--------------------------------------------------------------------------
+        */
         if ($student && $student->school_id) {
             $user->school_id = $student->school_id;
         }
 
         /*
         |--------------------------------------------------------------------------
-        | สร้าง User Code ใหม่
+        | User Code
         |--------------------------------------------------------------------------
         */
         $user->load('school');
 
-        $user->user_code = UserCodeService::generate($user);
+        $user->user_code =
+            UserCodeService::generate($user);
 
         if (! $user->user_code) {
             return back()
                 ->withErrors([
-                    'external_code' => 'ไม่สามารถสร้าง User Code ได้'
+                    'external_code' =>
+                        'ไม่สามารถสร้าง User Code ได้',
                 ])
                 ->withInput();
         }
 
-        $user->phone = $validated['phone'] ?? null;
+        /*
+        |--------------------------------------------------------------------------
+        | Contact
+        |--------------------------------------------------------------------------
+        */
+        $user->phone =
+            $validated['phone'] ?? null;
 
-        $user->address1 = $validated['address1'] ?? null;
-        $user->address2 = $validated['address2'] ?? null;
+        $user->address1 =
+            $validated['address1'] ?? null;
 
-        $user->province_id = $validated['province_id'] ?? null;
-        $user->district_id = $validated['district_id'] ?? null;
-        $user->subdistrict_id = $validated['subdistrict_id'] ?? null;
+        $user->address2 =
+            $validated['address2'] ?? null;
+
+        $user->province_id =
+            $validated['province_id'] ?? null;
+
+        $user->district_id =
+            $validated['district_id'] ?? null;
+
+        $user->subdistrict_id =
+            $validated['subdistrict_id'] ?? null;
+
 
         /*
         |--------------------------------------------------------------------------
-        | เปลี่ยน Password
+        | Password
         |--------------------------------------------------------------------------
         */
         if (! empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
+            $user->password =
+                Hash::make($validated['password']);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | บันทึก users
-        |--------------------------------------------------------------------------
-        */
         $user->save();
 
         /*
         |--------------------------------------------------------------------------
-        | Sync external_code → students.student_code
+        | Student
         |--------------------------------------------------------------------------
         */
         if ($student) {
+
             $student->update([
-                'student_code' => $user->external_code,
+                'student_code' =>
+                    $user->external_code,
+
+                'prefix' =>
+                    $validated['prefix'] ?? $student->prefix,
+
+                'first_name' =>
+                    $validated['first_name'] ?? $student->first_name,
+
+                'last_name' =>
+                    $validated['last_name'] ?? $student->last_name,
+
+                'temple_id' =>
+                    $validated['temple_id'] ?? null,
             ]);
 
-            // Refresh ค่า Student หลัง Update
             $student->refresh();
         }
 
         /*
         |--------------------------------------------------------------------------
-        | กำหนดข้อมูลสำหรับชื่อไฟล์รูป
+        | ชื่อไฟล์รูป
         |--------------------------------------------------------------------------
         */
         $role = 'STD';
 
-        $schoolCode = $student?->school?->school_code ?? 'UNKNOWN';
+        $schoolCode =
+            $student?->school?->school_code
+            ?? 'UNKNOWN';
 
-        // ใช้ student_code ล่าสุดหลังจาก Sync
-        $studentCode = $student?->student_code
+        $studentCode =
+            $student?->student_code
             ?? $user->external_code
             ?? ('USER-' . $user->id);
 
@@ -209,16 +476,18 @@ class DashboardController extends Controller
             $studentCode
         );
 
-        $timestamp = now()->format('Ymd_His');
+        $timestamp =
+            now()->format('Ymd_His');
 
         /*
         |--------------------------------------------------------------------------
-        | อัปโหลดรูป Profile
+        | Upload Profile Image
         |--------------------------------------------------------------------------
         */
         if ($request->hasFile('profile_image')) {
 
-            $file = $request->file('profile_image');
+            $file =
+                $request->file('profile_image');
 
             if (! $file->isValid()) {
                 return back()
@@ -229,9 +498,10 @@ class DashboardController extends Controller
                     ]);
             }
 
-            $extension = strtolower(
-                $file->getClientOriginalExtension()
-            );
+            $extension =
+                strtolower(
+                    $file->getClientOriginalExtension()
+                );
 
             if (! in_array(
                 $extension,
@@ -246,9 +516,9 @@ class DashboardController extends Controller
                     ]);
             }
 
-            $extension = $extension === 'jpeg'
-                ? 'jpg'
-                : $extension;
+            if ($extension === 'jpeg') {
+                $extension = 'jpg';
+            }
 
             $fileName = sprintf(
                 '%s-%s-%s_%s.%s',
@@ -280,23 +550,25 @@ class DashboardController extends Controller
             | บันทึกรูปใหม่
             |----------------------------------------------------------------------
             */
-            $user->profile_image = $file->storeAs(
-                'profiles',
-                $fileName,
-                'public'
-            );
+            $user->profile_image =
+                $file->storeAs(
+                    'profiles',
+                    $fileName,
+                    'public'
+                );
 
             $user->save();
+        }
 
-        } elseif ($request->filled('cropped_image')) {
+        /*
+        |--------------------------------------------------------------------------
+        | Cropped Image
+        |--------------------------------------------------------------------------
+        */
+        elseif ($request->filled('cropped_image')) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | รูปที่ Crop จาก Browser
-            |--------------------------------------------------------------------------
-            */
-
-            $image = $request->cropped_image;
+            $image =
+                $request->cropped_image;
 
             if (
                 ! preg_match(
@@ -313,28 +585,32 @@ class DashboardController extends Controller
                     ]);
             }
 
-            $extension = strtolower($matches[1]);
+            $extension =
+                strtolower($matches[1]);
 
-            $extension = $extension === 'jpeg'
-                ? 'jpg'
-                : $extension;
+            if ($extension === 'jpeg') {
+                $extension = 'jpg';
+            }
 
-            $imageData = preg_replace(
-                '/^data:image\/(jpeg|jpg|png|webp);base64,/',
-                '',
-                $image
-            );
+            $imageData =
+                preg_replace(
+                    '/^data:image\/(jpeg|jpg|png|webp);base64,/',
+                    '',
+                    $image
+                );
 
-            $imageData = str_replace(
-                ' ',
-                '+',
-                $imageData
-            );
+            $imageData =
+                str_replace(
+                    ' ',
+                    '+',
+                    $imageData
+                );
 
-            $decodedImage = base64_decode(
-                $imageData,
-                true
-            );
+            $decodedImage =
+                base64_decode(
+                    $imageData,
+                    true
+                );
 
             if ($decodedImage === false) {
                 return back()
@@ -354,7 +630,8 @@ class DashboardController extends Controller
                 $extension
             );
 
-            $imagePath = 'profiles/' . $fileName;
+            $imagePath =
+                'profiles/' . $fileName;
 
             /*
             |----------------------------------------------------------------------
@@ -374,7 +651,7 @@ class DashboardController extends Controller
 
             /*
             |----------------------------------------------------------------------
-            | บันทึกรูป Crop
+            | บันทึกรูป
             |----------------------------------------------------------------------
             */
             Storage::disk('public')->put(
@@ -382,7 +659,8 @@ class DashboardController extends Controller
                 $decodedImage
             );
 
-            $user->profile_image = $imagePath;
+            $user->profile_image =
+                $imagePath;
 
             $user->save();
         }

@@ -151,11 +151,66 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ-นามสกุล</label>
-                                    <input value="{{ $student?->full_name ?? '-' }}"
-                                           class="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-100 text-slate-600"
-                                           readonly>
+                                    <label for="prefix" class="block text-sm font-medium text-slate-700 mb-1">
+                                        คำนำหน้า
+                                    </label>
+
+                                    <select
+                                        name="prefix"
+                                        id="prefix"
+                                        class="w-full border border-slate-300 p-2.5 rounded-lg bg-white text-slate-700
+                                            focus:border-emerald-500 focus:ring-emerald-500"
+                                    >
+                                        <option value="">-- เลือกคำนำหน้า --</option>
+
+                                        <option value="สามเณร" @selected(old('prefix', $student?->prefix) === 'สามเณร')>
+                                            สามเณร
+                                        </option>
+
+                                        <option value="พระ" @selected(old('prefix', $student?->prefix) === 'พระ')>
+                                            พระ
+                                        </option>
+
+                                        <option value="นาย" @selected(old('prefix', $student?->prefix) === 'นาย')>
+                                            นาย
+                                        </option>
+
+                                        <option value="นางสาว" @selected(old('prefix', $student?->prefix) === 'นางสาว')>
+                                            นางสาว
+                                        </option>
+                                    </select>
                                 </div>
+
+                                <div>
+                                    <label for="first_name" class="block text-sm font-medium text-slate-700 mb-1">
+                                        ชื่อ
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="first_name"
+                                        id="first_name"
+                                        value="{{ old('first_name', $student?->first_name ?? '') }}"
+                                        class="w-full border border-slate-300 p-2.5 rounded-lg bg-white text-slate-700
+                                            focus:border-emerald-500 focus:ring-emerald-500"
+                                    >
+                                </div>
+
+                                <div>
+                                    <label for="last_name" class="block text-sm font-medium text-slate-700 mb-1">
+                                        นามสกุล
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="last_name"
+                                        id="last_name"
+                                        value="{{ old('last_name', $student?->last_name ?? '') }}"
+                                        class="w-full border border-slate-300 p-2.5 rounded-lg bg-white text-slate-700
+                                            focus:border-emerald-500 focus:ring-emerald-500"
+                                    >
+                                </div>
+
 
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 mb-1">โรงเรียน</label>
@@ -185,7 +240,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 mb-1">ระดับชั้น</label>
-                                    <input value="ม.{{ $enroll?->grade_level ?? '-' }}"
+                                    <input value="{{ $enroll?->grade_level ?? '-' }}"
                                            class="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-100 text-slate-600"
                                            readonly>
                                 </div>
@@ -210,8 +265,120 @@
                         <section>
                             <h2 class="font-semibold text-slate-800 mb-4">📞 ข้อมูลติดต่อ</h2>
 
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">
+                                    🛕 สังกัดวัด
+                                </label>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                                     {{-- จังหวัด --}}
+                                    <div>
+                                        <label for="temple_province" class="block text-xs text-slate-500 mb-1">
+                                            จังหวัด
+                                        </label>
+
+                                        <select
+                                            id="temple_province"
+                                            class="w-full border border-slate-300 p-2.5 rounded-lg bg-white"
+                                        >
+                                            <option value="">-- เลือกจังหวัด --</option>
+                                            @foreach ($templeProvinces as $province)
+                                                <option
+                                                    value="{{ $province }}"
+                                                    @selected(
+                                                        old('temple_province', $selectedTempleProvince) === $province
+                                                    )
+                                                >
+                                                    {{ $province }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    
+                                    {{-- อำเภอ --}}
+                                    <div>
+                                        <label for="temple_district" class="block text-xs text-slate-500 mb-1">
+                                            อำเภอ
+                                        </label>
+
+                                        <select
+                                            id="temple_district"
+                                            class="w-full border border-slate-300 p-2.5 rounded-lg bg-white"
+                                        >
+                                            <option value="">-- เลือกอำเภอ --</option>
+                                            @foreach ($templeDistricts as $district)
+                                                <option
+                                                    value="{{ $district }}"
+                                                    @selected(
+                                                        old('temple_district', $selectedTempleDistrict) === $district
+                                                    )
+                                                >
+                                                    {{ $district }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                     {{-- ตำบล --}}
+                                    <div>
+                                        <label for="temple_subdistrict" class="block text-xs text-slate-500 mb-1">
+                                            ตำบล
+                                        </label>
+
+                                        <select
+                                            id="temple_subdistrict"
+                                            name="temple_subdistrict"
+                                            class="w-full border border-slate-300 p-2.5 rounded-lg bg-white"
+                                        >
+                                            <option value="">-- เลือกตำบล --</option>
+
+                                            @foreach ($templeSubdistricts as $subdistrict)
+                                                <option
+                                                    value="{{ $subdistrict }}"
+                                                    @selected(
+                                                        old(
+                                                            'temple_subdistrict',
+                                                            $user->student?->temple?->subdistrict
+                                                        ) === $subdistrict
+                                                    )
+                                                >
+                                                    {{ $subdistrict }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    {{-- สังกัดวัด --}}
+                                    <div>
+                                        <label for="temple_id" class="block text-xs text-slate-500 mb-1">
+                                            สังกัดวัด
+                                        </label>
+
+                                        <select
+                                            name="temple_id"
+                                            id="temple_id"
+                                            class="w-full border border-slate-300 p-2.5 rounded-lg bg-white"
+                                        >
+                                            <option value="">-- เลือกวัด --</option>
+
+                                            @foreach ($temples as $temple)
+                                                <option
+                                                    value="{{ $temple->id }}"
+                                                    @selected(
+                                                        old(
+                                                            'temple_id',
+                                                            $user->student?->temple_id
+                                                        ) == $temple->id
+                                                    )
+                                                >
+                                                    {{ $temple->temple_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">เบอร์โทรศัพท์</label>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">เบอร์โทรศัพท์ติดต่อนักเรียน</label>
                                 <input type="text"
                                        name="phone"
                                        value="{{ old('phone', $user->phone) }}"
@@ -453,6 +620,338 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     loadSavedAddress();
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const templeProvinceSelect =
+        document.getElementById('temple_province');
+
+    const templeDistrictSelect =
+        document.getElementById('temple_district');
+
+    const templeSubdistrictSelect =
+        document.getElementById('temple_subdistrict');
+
+    const templeSelect =
+        document.getElementById('temple_id');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ล้างอำเภอ
+    |--------------------------------------------------------------------------
+    */
+    function clearTempleDistricts() {
+
+        templeDistrictSelect.innerHTML =
+            '<option value="">-- เลือกอำเภอ --</option>';
+
+        clearTempleSubdistricts();
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ล้างตำบล
+    |--------------------------------------------------------------------------
+    */
+    function clearTempleSubdistricts() {
+
+        templeSubdistrictSelect.innerHTML =
+            '<option value="">-- เลือกตำบล --</option>';
+
+        clearTemples();
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ล้างวัด
+    |--------------------------------------------------------------------------
+    */
+    function clearTemples() {
+
+        templeSelect.innerHTML =
+            '<option value="">-- เลือกวัด --</option>';
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | โหลดอำเภอ
+    |--------------------------------------------------------------------------
+    */
+    async function loadTempleDistricts(province, selectedDistrict = null) {
+
+        clearTempleDistricts();
+
+        if (!province) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `/student/temple-districts/${encodeURIComponent(province)}`
+            );
+
+            if (!response.ok) {
+                throw new Error('ไม่สามารถโหลดข้อมูลอำเภอของวัดได้');
+            }
+
+            const districts = await response.json();
+
+            districts.forEach(function (district) {
+
+                const option =
+                    document.createElement('option');
+
+                option.value = district;
+                option.textContent = district;
+
+                if (
+                    String(district) ===
+                    String(selectedDistrict)
+                ) {
+                    option.selected = true;
+                }
+
+                templeDistrictSelect.appendChild(option);
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | โหลดตำบล
+    |--------------------------------------------------------------------------
+    */
+    async function loadTempleSubdistricts(
+        province,
+        district,
+        selectedSubdistrict = null
+    ) {
+
+        clearTempleSubdistricts();
+
+        if (!province || !district) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `/student/temple-subdistricts/${encodeURIComponent(province)}/${encodeURIComponent(district)}`
+            );
+
+            if (!response.ok) {
+                throw new Error('ไม่สามารถโหลดข้อมูลตำบลของวัดได้');
+            }
+
+            const subdistricts = await response.json();
+
+            subdistricts.forEach(function (subdistrict) {
+
+                const option =
+                    document.createElement('option');
+
+                option.value = subdistrict;
+                option.textContent = subdistrict;
+
+                if (
+                    String(subdistrict) ===
+                    String(selectedSubdistrict)
+                ) {
+                    option.selected = true;
+                }
+
+                templeSubdistrictSelect.appendChild(option);
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | โหลดวัด
+    |--------------------------------------------------------------------------
+    */
+    async function loadTemples(
+        province,
+        district,
+        subdistrict,
+        selectedTempleId = null
+    ) {
+
+        clearTemples();
+
+        if (!province || !district || !subdistrict) {
+            return;
+        }
+
+        try {
+
+            const url =
+                `/student/temples/${encodeURIComponent(province)}/${encodeURIComponent(district)}/${encodeURIComponent(subdistrict)}`;
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('ไม่สามารถโหลดข้อมูลวัดได้');
+            }
+
+            const temples = await response.json();
+
+            temples.forEach(function (temple) {
+
+                const option =
+                    document.createElement('option');
+
+                option.value = temple.id;
+                option.textContent = temple.temple_name;
+
+                if (
+                    String(temple.id) ===
+                    String(selectedTempleId)
+                ) {
+                    option.selected = true;
+                }
+
+                templeSelect.appendChild(option);
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | เมื่อเลือกจังหวัด
+    |--------------------------------------------------------------------------
+    */
+    templeProvinceSelect.addEventListener(
+        'change',
+        async function () {
+
+            await loadTempleDistricts(this.value);
+
+        }
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | เมื่อเลือกอำเภอ
+    |--------------------------------------------------------------------------
+    */
+    templeDistrictSelect.addEventListener(
+        'change',
+        async function () {
+
+            await loadTempleSubdistricts(
+                templeProvinceSelect.value,
+                this.value
+            );
+
+        }
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | เมื่อเลือกตำบล
+    |--------------------------------------------------------------------------
+    */
+    templeSubdistrictSelect.addEventListener(
+        'change',
+        async function () {
+
+            await loadTemples(
+                templeProvinceSelect.value,
+                templeDistrictSelect.value,
+                this.value
+            );
+
+        }
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | โหลดข้อมูลเดิมของนักเรียน
+    |--------------------------------------------------------------------------
+    */
+
+    const savedTempleProvince =
+        @json($selectedTempleProvince);
+
+    const savedTempleDistrict =
+        @json($selectedTempleDistrict);
+
+    const savedTempleSubdistrict =
+        @json($selectedTempleSubdistrict);
+
+    const savedTempleId =
+        @json($user->student?->temple_id);
+
+
+    async function loadSavedTemple() {
+
+        if (!savedTempleProvince) {
+            return;
+        }
+
+        templeProvinceSelect.value =
+            savedTempleProvince;
+
+        await loadTempleDistricts(
+            savedTempleProvince,
+            savedTempleDistrict
+        );
+
+        if (!savedTempleDistrict) {
+            return;
+        }
+
+        await loadTempleSubdistricts(
+            savedTempleProvince,
+            savedTempleDistrict,
+            savedTempleSubdistrict
+        );
+
+        if (!savedTempleSubdistrict) {
+            return;
+        }
+
+        await loadTemples(
+            savedTempleProvince,
+            savedTempleDistrict,
+            savedTempleSubdistrict,
+            savedTempleId
+        );
+    }
+
+
+    loadSavedTemple();
+
 });
 </script>
 
