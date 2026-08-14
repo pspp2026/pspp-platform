@@ -24,6 +24,7 @@ class Student extends Model
         'nationality',
         'ethnicity',
         'temple_id',
+        'status',
     ];
 
     /*

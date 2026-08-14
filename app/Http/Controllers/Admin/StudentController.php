@@ -7,12 +7,13 @@ use App\Models\Classroom;
 use App\Models\School;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $students = Student::query()
         ->when($user->role !== 'superadmin', function ($query) use ($user) {
             $query->where('school_id', $user->school_id);
@@ -73,7 +74,7 @@ class StudentController extends Controller
     public function create()
     {
         
-    $user = auth()->user();
+    $user = Auth::user();
 
     $schools = School::query()
         ->select('id', 'school_name')
@@ -99,7 +100,7 @@ class StudentController extends Controller
 
     public function store(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $data = $this->validateStudent($request);
 
@@ -119,7 +120,7 @@ class StudentController extends Controller
 
     public function edit(Student $student)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if ($user->role !== 'superadmin' && $student->school_id != $user->school_id) {
             abort(403);
@@ -149,7 +150,7 @@ class StudentController extends Controller
 
     public function update(Request $request, Student $student)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         if ($user->role !== 'superadmin' && $student->school_id != $user->school_id) {
             abort(403);
         }
@@ -170,7 +171,7 @@ class StudentController extends Controller
 
     public function destroy(Student $student)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         if ($user->role !== 'superadmin' && $student->school_id != $user->school_id) {
             abort(403);
         }

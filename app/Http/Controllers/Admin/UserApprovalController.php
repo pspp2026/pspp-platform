@@ -18,7 +18,7 @@ class UserApprovalController extends Controller
      */
     public function index()
     {
-        $schoolId = auth()->user()->school_id;
+        $schoolId = Auth::user()->school_id;
 
         $users = User::where('status', 'pending')
             ->where('school_id', $schoolId)
@@ -33,7 +33,7 @@ class UserApprovalController extends Controller
      */
     public function approve(Request $request, User $user)
     {
-        $schoolId = auth()->user()->school_id;
+        $schoolId = Auth::user()->school_id;
 
         abort_if($user->school_id != $schoolId, 403);
 
@@ -54,7 +54,7 @@ class UserApprovalController extends Controller
      */
     public function approveBulk(Request $request)
     {
-        $schoolId = auth()->user()->school_id;
+        $schoolId = Auth::user()->school_id;
 
         $validated = $request->validate([
             'user_ids' => ['required', 'array'],
@@ -98,7 +98,7 @@ class UserApprovalController extends Controller
      */
     public function reject(User $user)
     {
-        $schoolId = auth()->user()->school_id;
+        $schoolId = Auth::user()->school_id;
 
         abort_if($user->school_id != $schoolId, 403);
 
@@ -191,6 +191,7 @@ class UserApprovalController extends Controller
                 'last_name' => null,
                 'prefix' => null,
                 'school_id' => $user->school_id,
+                'status' => 'active',
             ]
         );
     }
