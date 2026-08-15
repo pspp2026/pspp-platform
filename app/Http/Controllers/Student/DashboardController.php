@@ -142,8 +142,7 @@ class DashboardController extends Controller
             'selectedTempleId'
         ));
     }
-
-    /**
+/**
      * บันทึกข้อมูลโปรไฟล์นักเรียน
      */
     public function updateProfile(Request $request)
@@ -178,11 +177,16 @@ class DashboardController extends Controller
         try {
             $student = $user->student;
 
-            /*
-            |--------------------------------------------------------------------------
-            | อัปเดตข้อมูล User & Student
-            |--------------------------------------------------------------------------
-            */
+            // 1. Sync ข้อมูลนักเรียนก่อน (ถ้ามี)
+            if ($student) {
+                $student->update([
+                    'student_code' => $validated['external_code'] ?? $student->student_code,
+                    'temple_id' => $validated['temple_id'] ?? null,
+                ]);
+                $student->refresh();
+            }
+
+            // 2. เติมข้อมูลลง User
             $user->fill([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
@@ -200,28 +204,24 @@ class DashboardController extends Controller
                 $user->password = Hash::make($validated['password']);
             }
 
-            // สร้าง User Code ใหม่
+            // บันทึก User รอบแรกเพื่อให้ DB นิ่งก่อน
+            $user->save();
+
+            // 3. สร้าง User Code (โหลดความสัมพันธ์ school ใหม่ให้ชัวร์)
+            $user->unsetRelation('school');
             $user->load('school');
             $userCode = UserCodeService::generate($user);
 
             if (! $userCode) {
                 DB::rollBack();
                 return back()
-                    ->withErrors(['external_code' => 'ไม่สามารถสร้าง User Code ได้'])
+                    ->withErrors(['external_code' => 'ไม่สามารถสร้าง User Code ได้ (กรุณาตรวจสอบการตั้งค่าโรงเรียนของนักเรียน)'])
                     ->withInput();
             }
 
+            // อัปเดต user_code และเซฟอีกครั้ง
             $user->user_code = $userCode;
             $user->save();
-
-            // Sync ข้อมูลนักเรียน
-            if ($student) {
-                $student->update([
-                    'student_code' => $user->external_code,
-                    'temple_id' => $validated['temple_id'] ?? null,
-                ]);
-                $student->refresh();
-            }
 
             /*
             |--------------------------------------------------------------------------
@@ -290,7 +290,6 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // ลบรูปใหม่ที่ถูกเซฟไปแล้ว หากเกิด Exception ในขั้นตอน Database
             if ($newProfilePath && Storage::disk('public')->exists($newProfilePath)) {
                 Storage::disk('public')->delete($newProfilePath);
             }
