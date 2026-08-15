@@ -3,19 +3,55 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicTerm;
+use App\Models\Classroom;
+use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
+use App\Models\Period;
 use App\Models\Province;
-use App\Models\User;
+use App\Models\Schedule;
+use App\Models\School;
+use App\Models\Student;
+use App\Models\Subject;
 use App\Models\Temple;
+use App\Models\User;
 use App\Services\UserCodeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
+    /**
+     * หน้า Dashboard นักเรียน
+     */
+    public function index()
+    {
+        $userId = Auth::id();
+        $lessons = Lesson::all();
+        $totalLessons = $lessons->count();
+
+        $completedLessons = LessonProgress::where('user_id', $userId)
+            ->pluck('lesson_id')
+            ->toArray();
+
+        $completedCount = count($completedLessons);
+
+        $percent = $totalLessons > 0
+            ? round(($completedCount / $totalLessons) * 100)
+            : 0;
+
+        return view('student.dashboard', compact(
+            'lessons',
+            'completedLessons',
+            'percent'
+        ));
+    }
+
     /**
      * หน้าโปรไฟล์นักเรียน
      */
@@ -27,22 +63,15 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | โหลดข้อมูลนักเรียน
-        |--------------------------------------------------------------------------
-        */
         $user->load([
             'student.enrollments',
             'student.school',
             'student.temple',
         ]);
 
-        $student = $user->student;
-
         /*
         |--------------------------------------------------------------------------
-        | จังหวัดสำหรับที่อยู่
+        | ข้อมูลที่อยู่ของผู้ใช้
         |--------------------------------------------------------------------------
         */
         $provinces = Province::query()
@@ -51,193 +80,68 @@ class DashboardController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | ข้อมูลเดิมของวัด
-        |--------------------------------------------------------------------------
-        */
-        $selectedTempleProvince = $student?->temple?->province;
-        $selectedTempleDistrict = $student?->temple?->district;
-        $selectedTempleSubdistrict = $student?->temple?->subdistrict;
-        $selectedTempleId = $student?->temple_id;
-
-        /*
-        |--------------------------------------------------------------------------
-        | จังหวัดที่มีวัด
+        | ข้อมูลวัด
         |--------------------------------------------------------------------------
         */
         $templeProvinces = Temple::query()
             ->whereNotNull('province')
             ->where('province', '!=', '')
-            ->select('province')
             ->distinct()
             ->orderBy('province')
             ->pluck('province');
 
-        /*
-        |--------------------------------------------------------------------------
-        | อำเภอของวัด
-        |--------------------------------------------------------------------------
-        | โหลดเฉพาะกรณีที่นักเรียนมีจังหวัดเดิม
-        |--------------------------------------------------------------------------
-        */
-        $templeDistricts = collect();
+        $selectedTemple = $user->student?->temple;
+        $selectedTempleProvince = $selectedTemple?->province;
+        $selectedTempleDistrict = $selectedTemple?->district;
+        $selectedTempleSubdistrict = $selectedTemple?->subdistrict;
+        $selectedTempleId = $selectedTemple?->id;
 
-        if ($selectedTempleProvince) {
-            $templeDistricts = Temple::query()
+        // โหลดอำเภอ
+        $templeDistricts = $selectedTempleProvince
+            ? Temple::query()
                 ->where('province', $selectedTempleProvince)
                 ->whereNotNull('district')
                 ->where('district', '!=', '')
-                ->select('district')
                 ->distinct()
                 ->orderBy('district')
-                ->pluck('district');
-        }
+                ->pluck('district')
+            : collect();
 
-        /*
-        |--------------------------------------------------------------------------
-        | ตำบลของวัด
-        |--------------------------------------------------------------------------
-        */
-        $templeSubdistricts = collect();
-
-        if (
-            $selectedTempleProvince &&
-            $selectedTempleDistrict
-        ) {
-            $templeSubdistricts = Temple::query()
+        // โหลดตำบล
+        $templeSubdistricts = ($selectedTempleProvince && $selectedTempleDistrict)
+            ? Temple::query()
                 ->where('province', $selectedTempleProvince)
                 ->where('district', $selectedTempleDistrict)
                 ->whereNotNull('subdistrict')
                 ->where('subdistrict', '!=', '')
-                ->select('subdistrict')
                 ->distinct()
                 ->orderBy('subdistrict')
-                ->pluck('subdistrict');
-        }
+                ->pluck('subdistrict')
+            : collect();
 
-        /*
-        |--------------------------------------------------------------------------
-        | วัด
-        |--------------------------------------------------------------------------
-        */
-        $temples = collect();
-
-        if (
-            $selectedTempleProvince &&
-            $selectedTempleDistrict &&
-            $selectedTempleSubdistrict
-        ) {
-            $temples = Temple::query()
+        // โหลดวัด
+        $temples = ($selectedTempleProvince && $selectedTempleDistrict && $selectedTempleSubdistrict)
+            ? Temple::query()
                 ->where('province', $selectedTempleProvince)
                 ->where('district', $selectedTempleDistrict)
                 ->where('subdistrict', $selectedTempleSubdistrict)
                 ->orderBy('temple_name')
-                ->get([
-                    'id',
-                    'temple_name',
-                    'province',
-                    'district',
-                    'subdistrict',
-                ]);
-        }
+                ->get(['id', 'temple_name', 'province', 'district', 'subdistrict'])
+            : collect();
 
-        /*
-        |--------------------------------------------------------------------------
-        | การลงทะเบียนล่าสุด
-        |--------------------------------------------------------------------------
-        */
-        $enroll = $student
-            ? $student->enrollments()
-                ->latest('academic_year')
-                ->latest('semester')
-                ->first()
-            : null;
-
-        /*
-        |--------------------------------------------------------------------------
-        | ส่งข้อมูลไป View
-        |--------------------------------------------------------------------------
-        */
         return view('student.profile', compact(
             'user',
-            'student',
             'provinces',
-            'enroll',
-
-            // Temple
             'templeProvinces',
             'templeDistricts',
             'templeSubdistricts',
             'temples',
-
-            // ค่าเดิม
             'selectedTempleProvince',
             'selectedTempleDistrict',
             'selectedTempleSubdistrict',
             'selectedTempleId'
         ));
     }
-
-
-    /**
-     * AJAX: ดึงอำเภอของวัดตามจังหวัด
-     */
-    public function templeDistricts(string $province)
-    {
-        $districts = Temple::query()
-            ->where('province', $province)
-            ->whereNotNull('district')
-            ->where('district', '!=', '')
-            ->select('district')
-            ->distinct()
-            ->orderBy('district')
-            ->pluck('district');
-
-        return response()->json($districts);
-    }
-
-
-    /**
-     * AJAX: ดึงตำบลของวัดตามจังหวัด + อำเภอ
-     */
-    public function templeSubdistricts(
-        string $province,
-        string $district
-    ) {
-        $subdistricts = Temple::query()
-            ->where('province', $province)
-            ->where('district', $district)
-            ->whereNotNull('subdistrict')
-            ->where('subdistrict', '!=', '')
-            ->select('subdistrict')
-            ->distinct()
-            ->orderBy('subdistrict')
-            ->pluck('subdistrict');
-
-        return response()->json($subdistricts);
-    }
-
-
-    /**
-     * AJAX: ดึงวัดตามจังหวัด + อำเภอ + ตำบล
-     */
-    public function temples(
-        string $province,
-        string $district,
-        string $subdistrict
-    ) {
-        $temples = Temple::query()
-            ->where('province', $province)
-            ->where('district', $district)
-            ->where('subdistrict', $subdistrict)
-            ->orderBy('temple_name')
-            ->get([
-                'id',
-                'temple_name',
-            ]);
-
-        return response()->json($temples);
-    }
-
 
     /**
      * บันทึกข้อมูลโปรไฟล์นักเรียน
@@ -250,424 +154,148 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $user->load([
-            'student.school',
-        ]);
-
         $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-            ],
-
-            'external_code' => [
-                'nullable',
-                'string',
-                'max:50',
-            ],
-
-            'prefix' => [
-                'nullable',
-                'string',
-                'max:50',
-            ],
-
-            'first_name' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
-
-            'last_name' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
-
-            'phone' => [
-                'nullable',
-                'string',
-                'max:20',
-            ],
-
-            'address1' => [
-                'nullable',
-                'string',
-            ],
-
-            'address2' => [
-                'nullable',
-                'string',
-            ],
-
-            'province_id' => [
-                'nullable',
-            ],
-
-            'district_id' => [
-                'nullable',
-            ],
-
-            'subdistrict_id' => [
-                'nullable',
-            ],
-
-
-            'temple_id' => [
-                'nullable',
-                'exists:temples,id',
-            ],
-
-            'profile_image' => [
-                'nullable',
-                'file',
-                'mimes:jpg,jpeg,png,webp',
-                'max:2048',
-            ],
-
-            'cropped_image' => [
-                'nullable',
-                'string',
-            ],
-
-            'password' => [
-                'nullable',
-                'confirmed',
-                'min:6',
-            ],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'external_code' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'address1' => ['nullable', 'string'],
+            'address2' => ['nullable', 'string'],
+            'province_id' => ['nullable'],
+            'district_id' => ['nullable'],
+            'subdistrict_id' => ['nullable'],
+            'temple_id' => ['nullable', 'exists:temples,id'],
+            'profile_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'cropped_image' => ['nullable', 'string'],
+            'password' => ['nullable', 'confirmed', 'min:6'],
         ]);
 
-        $student = $user->student;
+        $oldProfileImage = $user->profile_image;
+        $newProfilePath = null;
 
-        /*
-        |--------------------------------------------------------------------------
-        | User
-        |--------------------------------------------------------------------------
-        */
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
+        // ทำการบันทึกข้อมูลหลักผ่าน Transaction เพื่อความปลอดภัยของข้อมูล
+        DB::beginTransaction();
+        try {
+            $student = $user->student;
 
-        $user->external_code =
-            $validated['external_code'] ?? null;
-
-        /*
-        |--------------------------------------------------------------------------
-        | school_id
-        |--------------------------------------------------------------------------
-        */
-        if ($student && $student->school_id) {
-            $user->school_id = $student->school_id;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | User Code
-        |--------------------------------------------------------------------------
-        */
-        $user->load('school');
-
-        $user->user_code =
-            UserCodeService::generate($user);
-
-        if (! $user->user_code) {
-            return back()
-                ->withErrors([
-                    'external_code' =>
-                        'ไม่สามารถสร้าง User Code ได้',
-                ])
-                ->withInput();
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Contact
-        |--------------------------------------------------------------------------
-        */
-        $user->phone =
-            $validated['phone'] ?? null;
-
-        $user->address1 =
-            $validated['address1'] ?? null;
-
-        $user->address2 =
-            $validated['address2'] ?? null;
-
-        $user->province_id =
-            $validated['province_id'] ?? null;
-
-        $user->district_id =
-            $validated['district_id'] ?? null;
-
-        $user->subdistrict_id =
-            $validated['subdistrict_id'] ?? null;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Password
-        |--------------------------------------------------------------------------
-        */
-        if (! empty($validated['password'])) {
-            $user->password =
-                Hash::make($validated['password']);
-        }
-
-        $user->save();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Student
-        |--------------------------------------------------------------------------
-        */
-        if ($student) {
-
-            $student->update([
-                'student_code' =>
-                    $user->external_code,
-
-                'prefix' =>
-                    $validated['prefix'] ?? $student->prefix,
-
-                'first_name' =>
-                    $validated['first_name'] ?? $student->first_name,
-
-                'last_name' =>
-                    $validated['last_name'] ?? $student->last_name,
-
-                'temple_id' =>
-                    $validated['temple_id'] ?? null,
+            /*
+            |--------------------------------------------------------------------------
+            | อัปเดตข้อมูล User & Student
+            |--------------------------------------------------------------------------
+            */
+            $user->fill([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'external_code' => $validated['external_code'] ?? null,
+                'school_id' => $student?->school_id ?? $user->school_id,
+                'phone' => $validated['phone'] ?? null,
+                'address1' => $validated['address1'] ?? null,
+                'address2' => $validated['address2'] ?? null,
+                'province_id' => $validated['province_id'] ?? null,
+                'district_id' => $validated['district_id'] ?? null,
+                'subdistrict_id' => $validated['subdistrict_id'] ?? null,
             ]);
 
-            $student->refresh();
-        }
+            if (! empty($validated['password'])) {
+                $user->password = Hash::make($validated['password']);
+            }
 
-        /*
-        |--------------------------------------------------------------------------
-        | ชื่อไฟล์รูป
-        |--------------------------------------------------------------------------
-        */
-        $role = 'STD';
+            // สร้าง User Code ใหม่
+            $user->load('school');
+            $userCode = UserCodeService::generate($user);
 
-        $schoolCode =
-            $student?->school?->school_code
-            ?? 'UNKNOWN';
-
-        $studentCode =
-            $student?->student_code
-            ?? $user->external_code
-            ?? ('USER-' . $user->id);
-
-        $schoolCode = preg_replace(
-            '/[^A-Za-z0-9_-]/',
-            '',
-            $schoolCode
-        );
-
-        $studentCode = preg_replace(
-            '/[^A-Za-z0-9_-]/',
-            '',
-            $studentCode
-        );
-
-        $timestamp =
-            now()->format('Ymd_His');
-
-        /*
-        |--------------------------------------------------------------------------
-        | Upload Profile Image
-        |--------------------------------------------------------------------------
-        */
-        if ($request->hasFile('profile_image')) {
-
-            $file =
-                $request->file('profile_image');
-
-            if (! $file->isValid()) {
+            if (! $userCode) {
+                DB::rollBack();
                 return back()
-                    ->withInput()
-                    ->withErrors([
-                        'profile_image' =>
-                            'อัปโหลดรูปภาพไม่สำเร็จ กรุณาเลือกรูปใหม่อีกครั้ง',
-                    ]);
+                    ->withErrors(['external_code' => 'ไม่สามารถสร้าง User Code ได้'])
+                    ->withInput();
             }
 
-            $extension =
-                strtolower(
-                    $file->getClientOriginalExtension()
-                );
-
-            if (! in_array(
-                $extension,
-                ['jpg', 'jpeg', 'png', 'webp'],
-                true
-            )) {
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'profile_image' =>
-                            'รองรับเฉพาะไฟล์ JPG, JPEG, PNG และ WEBP',
-                    ]);
-            }
-
-            if ($extension === 'jpeg') {
-                $extension = 'jpg';
-            }
-
-            $fileName = sprintf(
-                '%s-%s-%s_%s.%s',
-                $role,
-                $schoolCode,
-                $studentCode,
-                $timestamp,
-                $extension
-            );
-
-            /*
-            |----------------------------------------------------------------------
-            | ลบรูปเก่า
-            |----------------------------------------------------------------------
-            */
-            if (
-                $user->profile_image &&
-                Storage::disk('public')->exists(
-                    $user->profile_image
-                )
-            ) {
-                Storage::disk('public')->delete(
-                    $user->profile_image
-                );
-            }
-
-            /*
-            |----------------------------------------------------------------------
-            | บันทึกรูปใหม่
-            |----------------------------------------------------------------------
-            */
-            $user->profile_image =
-                $file->storeAs(
-                    'profiles',
-                    $fileName,
-                    'public'
-                );
-
+            $user->user_code = $userCode;
             $user->save();
-        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Cropped Image
-        |--------------------------------------------------------------------------
-        */
-        elseif ($request->filled('cropped_image')) {
-
-            $image =
-                $request->cropped_image;
-
-            if (
-                ! preg_match(
-                    '/^data:image\/(jpeg|jpg|png|webp);base64,/',
-                    $image,
-                    $matches
-                )
-            ) {
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'cropped_image' =>
-                            'รูปภาพที่ตัดไม่อยู่ในรูปแบบที่รองรับ',
-                    ]);
-            }
-
-            $extension =
-                strtolower($matches[1]);
-
-            if ($extension === 'jpeg') {
-                $extension = 'jpg';
-            }
-
-            $imageData =
-                preg_replace(
-                    '/^data:image\/(jpeg|jpg|png|webp);base64,/',
-                    '',
-                    $image
-                );
-
-            $imageData =
-                str_replace(
-                    ' ',
-                    '+',
-                    $imageData
-                );
-
-            $decodedImage =
-                base64_decode(
-                    $imageData,
-                    true
-                );
-
-            if ($decodedImage === false) {
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'cropped_image' =>
-                            'ไม่สามารถอ่านข้อมูลรูปภาพได้',
-                    ]);
-            }
-
-            $fileName = sprintf(
-                '%s-%s-%s_%s.%s',
-                $role,
-                $schoolCode,
-                $studentCode,
-                $timestamp,
-                $extension
-            );
-
-            $imagePath =
-                'profiles/' . $fileName;
-
-            /*
-            |----------------------------------------------------------------------
-            | ลบรูปเก่า
-            |----------------------------------------------------------------------
-            */
-            if (
-                $user->profile_image &&
-                Storage::disk('public')->exists(
-                    $user->profile_image
-                )
-            ) {
-                Storage::disk('public')->delete(
-                    $user->profile_image
-                );
+            // Sync ข้อมูลนักเรียน
+            if ($student) {
+                $student->update([
+                    'student_code' => $user->external_code,
+                    'temple_id' => $validated['temple_id'] ?? null,
+                ]);
+                $student->refresh();
             }
 
             /*
-            |----------------------------------------------------------------------
-            | บันทึกรูป
-            |----------------------------------------------------------------------
+            |--------------------------------------------------------------------------
+            | การประมวลผลไฟล์รูปภาพ
+            |--------------------------------------------------------------------------
             */
-            Storage::disk('public')->put(
-                $imagePath,
-                $decodedImage
-            );
+            $role = 'STD';
+            $schoolCode = preg_replace('/[^A-Za-z0-9_-]/', '', $student?->school?->school_code ?? 'UNKNOWN');
+            $studentCode = preg_replace('/[^A-Za-z0-9_-]/', '', $student?->student_code ?? $user->external_code ?? ('USER-' . $user->id));
+            $timestamp = now()->format('Ymd_His');
 
-            $user->profile_image =
-                $imagePath;
+            // กรณีอัปโหลดรูปไฟล์ปกติ
+            if ($request->hasFile('profile_image')) {
+                $file = $request->file('profile_image');
 
-            $user->save();
+                if (! $file->isValid()) {
+                    DB::rollBack();
+                    return back()->withInput()->withErrors(['profile_image' => 'อัปโหลดรูปภาพไม่สำเร็จ กรุณาเลือกรูปใหม่อีกครั้ง']);
+                }
+
+                $extension = strtolower($file->getClientOriginalExtension());
+                $extension = ($extension === 'jpeg') ? 'jpg' : $extension;
+                $fileName = sprintf('%s-%s-%s_%s.%s', $role, $schoolCode, $studentCode, $timestamp, $extension);
+
+                $newProfilePath = $file->storeAs('profiles', $fileName, 'public');
+
+            // กรณีอัปโหลดรูป Base64 จากการ Crop บนเบราว์เซอร์
+            } elseif ($request->filled('cropped_image')) {
+                $image = $request->cropped_image;
+
+                if (! preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,/', $image, $matches)) {
+                    DB::rollBack();
+                    return back()->withInput()->withErrors(['cropped_image' => 'รูปภาพที่ตัดไม่อยู่ในรูปแบบที่รองรับ']);
+                }
+
+                $extension = strtolower($matches[1]);
+                $extension = ($extension === 'jpeg') ? 'jpg' : $extension;
+
+                $imageData = base64_decode(preg_replace('/^data:image\/(jpeg|jpg|png|webp);base64,/', '', $image), true);
+
+                if ($imageData === false) {
+                    DB::rollBack();
+                    return back()->withInput()->withErrors(['cropped_image' => 'ไม่สามารถอ่านข้อมูลรูปภาพได้']);
+                }
+
+                $fileName = sprintf('%s-%s-%s_%s.%s', $role, $schoolCode, $studentCode, $timestamp, $extension);
+                $newProfilePath = 'profiles/' . $fileName;
+
+                Storage::disk('public')->put($newProfilePath, $imageData);
+            }
+
+            // ถ้ามีรูปใหม่ เซฟ path ใหม่และลบรูปเก่าออกจาก disk
+            if ($newProfilePath) {
+                $user->profile_image = $newProfilePath;
+                $user->save();
+
+                if ($oldProfileImage && Storage::disk('public')->exists($oldProfileImage)) {
+                    Storage::disk('public')->delete($oldProfileImage);
+                }
+            }
+
+            DB::commit();
+
+            return back()->with('success', 'อัปเดตโปรไฟล์สำเร็จ 🎉');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // ลบรูปใหม่ที่ถูกเซฟไปแล้ว หากเกิด Exception ในขั้นตอน Database
+            if ($newProfilePath && Storage::disk('public')->exists($newProfilePath)) {
+                Storage::disk('public')->delete($newProfilePath);
+            }
+
+            return back()->withInput()->withErrors(['error' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $e->getMessage()]);
         }
-
-        return back()->with(
-            'success',
-            'อัปเดตโปรไฟล์สำเร็จ 🎉'
-        );
     }
 }
