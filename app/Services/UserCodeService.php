@@ -21,7 +21,7 @@ class UserCodeService
         if (
             empty($user->role) ||
             empty($user->external_code) ||
-            empty($user->school)
+            !$user->school
         ) {
             return null;
         }

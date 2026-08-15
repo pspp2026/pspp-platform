@@ -197,8 +197,7 @@ class DashboardController extends Controller
             $user->fill([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'external_code' => $validated['external_code'] ?? null,
-                'school_id' => $student?->school_id ?? $user->school_id,
+                'external_code' => $validated['external_code'] ?? null,                
                 'phone' => $validated['phone'] ?? null,
                 'address1' => $validated['address1'] ?? null,
                 'address2' => $validated['address2'] ?? null,
@@ -206,6 +205,11 @@ class DashboardController extends Controller
                 'district_id' => $validated['district_id'] ?? null,
                 'subdistrict_id' => $validated['subdistrict_id'] ?? null,
             ]);
+
+            // school_id ต้องยึดจาก Student โดยตรง
+            if ($student?->school_id) {
+                $user->school_id = $student->school_id;
+            }
 
             if (! empty($validated['password'])) {
                 $user->password = Hash::make($validated['password']);
@@ -221,18 +225,22 @@ class DashboardController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $user->load('school');
-            $user->user_code = userCodeService::generate($user);
+            // 3. สร้าง User Code
+            $user->load('school');            
 
-            if (! $user->user_code) {
+            $userCode = UserCodeService::generate($user);            
+
+            if (! $userCode) {
+                DB::rollBack();
+
                 return back()
                     ->withErrors([
-                        'external_code' => 'ไม่สามารถสร้าง User Code ได้ (กรุณาตรวจสอบการตั้งค่าโรงเรียนของนักเรียน)'
+                        'external_code' => 'ไม่สามารถสร้าง User Code ได้ (กรุณาตรวจสอบ role, external_code และ school_id ของนักเรียน)'
                     ])
                     ->withInput();
             }
 
-            // บันทึก user_code ที่สร้างขึ้นแล้ว
+            $user->user_code = $userCode;
             $user->save();
 
             /*
