@@ -215,19 +215,24 @@ class DashboardController extends Controller
             $user->save();
 
             // 3. สร้าง User Code (โหลดความสัมพันธ์ school ใหม่ให้ชัวร์)
-            $user->unsetRelation('school');
-            $user->load('school');
-            $userCode = UserCodeService::generate($user);
+            /*
+            |--------------------------------------------------------------------------
+            | สร้าง User Code
+            |--------------------------------------------------------------------------
+            */
 
-            if (! $userCode) {
-                DB::rollBack();
+            $user->load('school');
+            $user->user_code = userCodeService::generate($user);
+
+            if (! $user->user_code) {
                 return back()
-                    ->withErrors(['external_code' => 'ไม่สามารถสร้าง User Code ได้ (กรุณาตรวจสอบการตั้งค่าโรงเรียนของนักเรียน)'])
+                    ->withErrors([
+                        'external_code' => 'ไม่สามารถสร้าง User Code ได้ (กรุณาตรวจสอบการตั้งค่าโรงเรียนของนักเรียน)'
+                    ])
                     ->withInput();
             }
 
-            // อัปเดต user_code และเซฟอีกครั้ง
-            $user->user_code = $userCode;
+            // บันทึก user_code ที่สร้างขึ้นแล้ว
             $user->save();
 
             /*
