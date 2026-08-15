@@ -156,7 +156,7 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            'external_code' => ['nullable', 'string', 'max:50'],
+            'external_code' => ['required', 'string', 'max:50'],
             'prefix' => ['nullable', 'string', 'max:50'],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
