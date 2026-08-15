@@ -31,9 +31,15 @@
                                 : 'https://i.pravatar.cc/40' }}"
                         class="w-10 h-10 rounded-full border object-cover">
 
-                    <span class="text-sm font-medium">
-                        {{ auth()->user()->name }}
-                    </span>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-medium">
+                            {{ auth()->user()->name }}
+                        </span>
+
+                        <span class="text-xs text-gray-500">
+                            {{ auth()->user()->student?->school?->school_name ?? 'ไม่พบข้อมูลโรงเรียน' }}
+                        </span>
+                    </div>
 
                 </div>
 
