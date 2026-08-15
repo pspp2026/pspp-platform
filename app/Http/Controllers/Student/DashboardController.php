@@ -157,6 +157,9 @@ class DashboardController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'external_code' => ['nullable', 'string', 'max:50'],
+            'prefix' => ['nullable', 'string', 'max:50'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:20'],
             'address1' => ['nullable', 'string'],
             'address2' => ['nullable', 'string'],
@@ -181,8 +184,12 @@ class DashboardController extends Controller
             if ($student) {
                 $student->update([
                     'student_code' => $validated['external_code'] ?? $student->student_code,
-                    'temple_id' => $validated['temple_id'] ?? null,
+                    'prefix'       => $validated['prefix'] ?? $student->prefix,
+                    'first_name'   => $validated['first_name'] ?? $student->first_name,
+                    'last_name'    => $validated['last_name'] ?? $student->last_name,
+                    'temple_id'    => $validated['temple_id'] ?? null,
                 ]);
+
                 $student->refresh();
             }
 
