@@ -382,7 +382,7 @@
 
                         {{-- ADDRESS --}}
                         <section>
-                            <h2 class="font-semibold text-slate-800 mb-4">📍 ที่อยู่</h2>
+                            <h2 class="font-semibold text-slate-800 mb-4">📍 ที่อยู่ปัจจุบั    </h2>
 
                             <div class="space-y-4">
                                 <div>

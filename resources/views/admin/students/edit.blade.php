@@ -109,10 +109,24 @@
                         <div>
                             <p class="text-xs text-slate-400">วันเกิด</p>
                             <p class="text-sm font-medium text-slate-700">
-                                {{ $student->birth_date ? \Carbon\Carbon::parse($student->birth_date)->translatedFormat('j F Y') : 'ไม่ระบุ' }}
+                                @if ($student->birth_date)
+                                    @php
+                                        $bDate = \Carbon\Carbon::parse($student->birth_date);
+                                        $thaiMonths = [
+                                            1 => 'มกราคม', 2 => 'กุมภาพันธ์', 3 => 'มีนาคม', 4 => 'เมษายน',
+                                            5 => 'พฤษภาคม', 6 => 'มิถุนายน', 7 => 'กรกฎาคม', 8 => 'สิงหาคม',
+                                            9 => 'กันยายน', 10 => 'ตุลาคม', 11 => 'พฤศจิกายน', 12 => 'ธันวาคม'
+                                        ];
+                                        $bYear = $bDate->year > 2400 ? $bDate->year : $bDate->year + 543;
+                                    @endphp
+                                    {{ $bDate->day }} {{ $thaiMonths[$bDate->month] }} {{ $bYear }}
+                                @else
+                                    ไม่ระบุ
+                                @endif
                             </p>
                         </div>
                     </div>
+
                     <div class="flex items-center gap-3">
                         <span class="text-lg">🏯</span>
                         <div>
@@ -197,11 +211,50 @@
                                    class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
                         </div>
 
+                        {{-- ส่วนแสดงผลวันเกิดภาษาไทย + ปี พ.ศ. พร้อม DatePicker --}}
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">🎂 วันเกิด</label>
-                            <input type="date" name="birth_date"
-                                   value="{{ old('birth_date', $student->birth_date ? \Carbon\Carbon::parse($student->birth_date)->format('Y-m-d') : '') }}"
-                                   class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            @php
+                                $rawBirthDate = old('birth_date', $student->birth_date);
+                                $formattedBirthDate = '';
+                                $thaiBirthDateText = 'เลือกวันเกิด';
+
+                                if ($rawBirthDate) {
+                                    $parsedDate = \Carbon\Carbon::parse($rawBirthDate);
+                                    if ($parsedDate->year > 2400) {
+                                        $parsedDate->subYears(543);
+                                    }
+                                    $formattedBirthDate = $parsedDate->format('Y-m-d');
+                                    
+                                    $thaiMonths = [
+                                        1 => 'มกราคม', 2 => 'กุมภาพันธ์', 3 => 'มีนาคม', 4 => 'เมษายน',
+                                        5 => 'พฤษภาคม', 6 => 'มิถุนายน', 7 => 'กรกฎาคม', 8 => 'สิงหาคม',
+                                        9 => 'กันยายน', 10 => 'ตุลาคม', 11 => 'พฤศจิกายน', 12 => 'ธันวาคม'
+                                    ];
+                                    $thaiYear = $parsedDate->year + 543;
+                                    $thaiBirthDateText = $parsedDate->day . ' ' . $thaiMonths[$parsedDate->month] . ' ' . $thaiYear;
+                                }
+                            @endphp
+
+                            <!-- Hidden Input สำหรับส่งค่า YYYY-MM-DD กลับ Backend -->
+                            <input type="hidden" name="birth_date" id="real_birth_date" value="{{ $formattedBirthDate }}">
+
+                            <!-- UI Custom Display ที่แสดงข้อความภาษาไทย -->
+                            <div class="relative cursor-pointer" onclick="document.getElementById('native_date_picker').showPicker()">
+                                <div class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-700 flex items-center justify-between shadow-sm hover:border-emerald-500 transition">
+                                    <span id="thai_date_display" class="{{ $formattedBirthDate ? 'text-slate-800 font-medium' : 'text-slate-400' }}">
+                                        {{ $thaiBirthDateText }}
+                                    </span>
+                                    <span class="text-slate-400">📅</span>
+                                </div>
+                                
+                                <!-- Native Date Picker แบบซ่อนความโปร่งใสไว้ด้านบน -->
+                                <input type="date" 
+                                       id="native_date_picker" 
+                                       value="{{ $formattedBirthDate }}"
+                                       class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                       onchange="updateThaiDateDisplay(this.value)">
+                            </div>
                         </div>
 
                         <div>
@@ -243,4 +296,29 @@
         </div>
     </div>
 </div>
+
+<script>
+function updateThaiDateDisplay(val) {
+    if (!val) return;
+    
+    // อัปเดตค่า YYYY-MM-DD เข้า Hidden Input
+    document.getElementById('real_birth_date').value = val;
+    
+    const date = new Date(val);
+    const day = date.getDate();
+    const monthIndex = date.getMonth();
+    const year = date.getFullYear() + 543;
+    
+    const thaiMonths = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+    
+    const text = `${day} ${thaiMonths[monthIndex]} ${year}`;
+    const displayEl = document.getElementById('thai_date_display');
+    displayEl.textContent = text;
+    displayEl.classList.remove('text-slate-400');
+    displayEl.classList.add('text-slate-800', 'font-medium');
+}
+</script>
 @endsection
