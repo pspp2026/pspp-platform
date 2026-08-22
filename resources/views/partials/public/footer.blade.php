@@ -235,7 +235,7 @@
 
             <div class="mt-4 md:mt-0 text-sm text-gray-500">
 
-                Powered by  Wisdom Pier Co., Ltd.
+                Powered by  สำนักเขตการศึกษาพระปริยัติธรรม แผนกสามัญศึกษา เขต 6
 
             </div>
 
